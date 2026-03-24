@@ -212,8 +212,6 @@
           <td class="font-bold">${item.name}</td>
           <td><span class="badge badge-info">${item.category}</span></td>
           <td class="text-right mono">₹${Number(item.selling_price).toFixed(2)}</td>
-          <td class="text-right mono text-muted">₹${Number(item.cost_price).toFixed(2)}</td>
-          <td class="text-right mono text-success font-bold">+₹${profit.toFixed(2)}</td>
           <td>
             <span class="badge ${item.available ? 'badge-success' : 'badge-danger'}">
               ${item.available ? '✅ Available' : '🚫 Off'}
