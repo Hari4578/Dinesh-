@@ -192,7 +192,6 @@
     if (existing) {
       existing.quantity++;
       existing.line_total = existing.selling_price * existing.quantity;
-      existing.line_profit = (existing.selling_price - existing.cost_price) * existing.quantity;
     } else {
       cart.push({
         item_id: item.id,
@@ -220,7 +219,6 @@
       cart.splice(idx, 1);
     } else {
       cart[idx].line_total = cart[idx].selling_price * cart[idx].quantity;
-      cart[idx].line_profit = (cart[idx].selling_price - cart[idx].cost_price) * cart[idx].quantity;
     }
 
     renderCart();
