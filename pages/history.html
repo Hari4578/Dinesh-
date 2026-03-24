@@ -58,21 +58,21 @@
       </div>
 
       <!-- Summary bar -->
-      <div class="stats-grid mb-4" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-        <div class="stat-card orange">
-          <div class="stat-icon orange">🧾</div>
-          <div class="stat-value" id="filter-count">0</div>
-          <div class="stat-label">Bills Found</div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-icon green">💰</div>
-          <div class="stat-value" id="filter-sales">₹0</div>
-          <div class="stat-label">Total Sales</div>
-        </div>
-        
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+  <div class="stat-card orange" style="flex:1;min-width:140px;">
+    <div class="stat-icon orange">🧾</div>
+    <div class="stat-value" id="filter-count">0</div>
+    <div class="stat-label">Bills Found</div>
+  </div>
+  <div class="stat-card green" style="flex:1;min-width:140px;">
+    <div class="stat-icon green">💰</div>
+    <div class="stat-value" id="filter-sales">₹0</div>
+    <div class="stat-label">Total Sales</div>
+  </div>
+</div>
 
-      <!-- Bills Table -->
-      <div class="card">
+<!-- Bills Table BELOW stat cards -->
+<div class="card" style="width:100%;margin-top:0;">
         <div class="card-header">
           <h3>📋 Bills List</h3>
           <span class="text-sm text-muted" id="bills-range-label">Showing all bills</span>
