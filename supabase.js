@@ -5,8 +5,8 @@
 // NEVER put service_role key here - only anon key is safe in frontend
 // ============================================================
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://gtujlykdrfwqbdschsya.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ypgOpoGy5hn1CVAGfFPvkw_SuWj4k1c';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
