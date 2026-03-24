@@ -185,27 +185,27 @@
 
   // ── Add to Cart ──
   function addToCart(itemId) {
-    const item = allMenuItems.find(i => i.id === itemId);
-    if (!item) return;
+  const item = allMenuItems.find(i => i.id === itemId);
+  if (!item) return;
 
-    const existing = cart.find(c => c.item_id === itemId);
-    if (existing) {
-      existing.quantity++;
-      existing.line_total = existing.selling_price * existing.quantity;
-    } else {
-      cart.push({
-        item_id: item.id,
-        item_name: item.name,
-        quantity: 1,
-        selling_price: Number(item.selling_price),
-        cost_price: Number(item.cost_price),
-        line_total: Number(item.selling_price),
-        line_profit: Number(item.selling_price) - Number(item.cost_price)
-      });
-    }
+  const existing = cart.find(c => c.item_id === itemId);
+  if (existing) {
+    existing.quantity++;
+    existing.line_total = existing.selling_price * existing.quantity;
+  } else {
+    cart.push({
+      item_id: item.id,
+      item_name: item.name,
+      quantity: 1,
+      selling_price: Number(item.selling_price),
+      cost_price: 0,
+      line_total: Number(item.selling_price),
+      line_profit: 0
+    });
+  }
 
-    renderCart();
-    renderMenu();
+  renderCart();
+  renderMenu();
   }
 
   // ── Adjust Quantity ──
