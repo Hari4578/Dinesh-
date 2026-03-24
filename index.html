@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — Dinesh Hotel</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -13,39 +12,36 @@
 
 <div class="login-page">
   <div class="login-bg-pattern"></div>
-
   <div class="login-card">
     <div class="login-logo">
       <div class="hotel-icon">🍽️</div>
       <h1>Dinesh Hotel</h1>
       <p>Billing Management System</p>
     </div>
-
     <div class="login-form">
       <h2>Admin Login</h2>
-
       <div class="form-group">
         <label for="email">Email Address</label>
         <div class="input-with-icon">
           <span class="input-icon">✉️</span>
-          <input type="email" id="email" class="form-control" placeholder="admin@dineshhotel.com" autocomplete="email">
+          <input type="email" id="email" class="form-control" 
+                 placeholder="admin@dineshhotel.com" autocomplete="email">
         </div>
       </div>
-
       <div class="form-group">
         <label for="password">Password</label>
         <div class="input-with-icon">
           <span class="input-icon">🔒</span>
-          <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+          <input type="password" id="password" class="form-control" 
+                 placeholder="Enter your password" autocomplete="current-password">
         </div>
       </div>
-
+      <div id="error-msg" style="display:none;background:#ffebee;color:#c62828;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:12px;border-left:3px solid #c62828;"></div>
       <button id="login-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
         🔑 Sign In to Dashboard
       </button>
-
-      <div style="text-align:center; margin-top:16px;">
-        <a href="#" id="forgot-link" style="font-size:0.82rem; color:var(--saffron); font-weight:500;">
+      <div style="text-align:center;margin-top:16px;">
+        <a href="#" id="forgot-link" style="font-size:.82rem;color:var(--saffron);font-weight:500;">
           Forgot password?
         </a>
       </div>
@@ -53,59 +49,97 @@
   </div>
 </div>
 
-<script src="js/supabase.js"></script>
-<script src="js/app.js"></script>
+<!-- Load Supabase FIRST using the UMD build -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <script>
-  // If already logged in, redirect to dashboard
-  (async () => {
-    const user = await Auth.getUser();
-    if (user) window.location.href = 'pages/dashboard.html';
-  })();
+// ── Inline Supabase init (fixes loading order issue) ──
+const SUPABASE_URL = 'https://gtujlykdrfwqbdschsya.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ypgOpoGy5hn1CVAGfFPvkw_SuWj4k1c';
 
-  const loginBtn = document.getElementById('login-btn');
-  const emailInput = document.getElementById('email');
-  const passInput = document.getElementById('password');
+const { createClient } = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  async function doLogin() {
-    const email = emailInput.value.trim();
-    const password = passInput.value;
+// ── Toast helper ──
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
-    if (!email || !password) {
-      Toast.error('Please enter email and password');
-      return;
+function hideError() {
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+// ── Check if already logged in ──
+(async () => {
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      window.location.href = 'pages/dashboard.html';
     }
+  } catch(e) {
+    console.log('Session check failed:', e);
+  }
+})();
 
-    loginBtn.disabled = true;
-    loginBtn.textContent = '⏳ Signing in...';
+// ── Login handler ──
+async function doLogin() {
+  hideError();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
 
-    try {
-      await Auth.signIn(email, password);
-      Toast.success('Login successful! Redirecting...');
-      setTimeout(() => { window.location.href = 'pages/dashboard.html'; }, 800);
-    } catch (err) {
-      Toast.error('Invalid email or password. Please try again.');
-      loginBtn.disabled = false;
-      loginBtn.innerHTML = '🔑 Sign In to Dashboard';
-    }
+  if (!email || !password) {
+    showError('Please enter your email and password.');
+    return;
   }
 
-  loginBtn.addEventListener('click', doLogin);
-  passInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  btn.disabled = true;
+  btn.textContent = '⏳ Signing in...';
 
-  document.getElementById('forgot-link').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const email = emailInput.value.trim();
-    if (!email) {
-      Toast.error('Enter your email address above first');
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      showError('Login failed: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = '🔑 Sign In to Dashboard';
       return;
     }
-    try {
-      await Auth.resetPassword(email);
-      Toast.success('Password reset email sent! Check your inbox.');
-    } catch (err) {
-      Toast.error('Failed to send reset email. Check the email address.');
+
+    if (data.session) {
+      btn.textContent = '✅ Success! Redirecting...';
+      window.location.href = 'pages/dashboard.html';
     }
-  });
+
+  } catch (err) {
+    showError('Connection error. Check your internet and try again.');
+    btn.disabled = false;
+    btn.innerHTML = '🔑 Sign In to Dashboard';
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+document.getElementById('forgot-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  if (!email) {
+    showError('Enter your email address above first.');
+    return;
+  }
+  try {
+    const { error } = await db.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    alert('Password reset email sent! Check your inbox.');
+  } catch (err) {
+    showError('Failed to send reset email: ' + err.message);
+  }
+});
 </script>
 </body>
 </html>
