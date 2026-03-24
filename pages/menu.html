@@ -308,13 +308,13 @@
       if (editId) {
         await Menu.update(editId, {
           name, category, selling_price,
-          cost_price: 0, available
+          available
         });
         Toast.success('Item updated successfully!');
       } else {
         await Menu.create({
           name, category, selling_price,
-          cost_price: 0, available
+          available
         });
         Toast.success('Item added successfully!');
       }
