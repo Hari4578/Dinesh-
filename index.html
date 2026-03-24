@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Dinesh Hotel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="print-receipt"></div>
+
+<div class="login-page">
+  <div class="login-bg-pattern"></div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="hotel-icon">🍽️</div>
+      <h1>Dinesh Hotel</h1>
+      <p>Billing Management System</p>
+    </div>
+
+    <div class="login-form">
+      <h2>Admin Login</h2>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-with-icon">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" class="form-control" placeholder="admin@dineshhotel.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-with-icon">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+        </div>
+      </div>
+
+      <button id="login-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+        🔑 Sign In to Dashboard
+      </button>
+
+      <div style="text-align:center; margin-top:16px;">
+        <a href="#" id="forgot-link" style="font-size:0.82rem; color:var(--saffron); font-weight:500;">
+          Forgot password?
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // If already logged in, redirect to dashboard
+  (async () => {
+    const user = await Auth.getUser();
+    if (user) window.location.href = 'pages/dashboard.html';
+  })();
+
+  const loginBtn = document.getElementById('login-btn');
+  const emailInput = document.getElementById('email');
+  const passInput = document.getElementById('password');
+
+  async function doLogin() {
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+
+    if (!email || !password) {
+      Toast.error('Please enter email and password');
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = '⏳ Signing in...';
+
+    try {
+      await Auth.signIn(email, password);
+      Toast.success('Login successful! Redirecting...');
+      setTimeout(() => { window.location.href = 'pages/dashboard.html'; }, 800);
+    } catch (err) {
+      Toast.error('Invalid email or password. Please try again.');
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '🔑 Sign In to Dashboard';
+    }
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  passInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  document.getElementById('forgot-link').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    if (!email) {
+      Toast.error('Enter your email address above first');
+      return;
+    }
+    try {
+      await Auth.resetPassword(email);
+      Toast.success('Password reset email sent! Check your inbox.');
+    } catch (err) {
+      Toast.error('Failed to send reset email. Check the email address.');
+    }
+  });
+</script>
+</body>
+</html>

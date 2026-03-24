@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill History — Dinesh Hotel</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="print-receipt"></div>
+
+<div class="admin-layout">
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="hamburger-btn" id="hamburger-btn">☰</button>
+        <div>
+          <div class="page-title">Bill History</div>
+          <div class="page-subtitle">Search and manage all bills</div>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <span class="current-time" id="current-time"></span>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Filters -->
+      <div class="card mb-4">
+        <div class="card-body" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+          <div style="flex:1;min-width:180px;">
+            <label class="text-sm" style="display:block;color:var(--text-light);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Search Bill No</label>
+            <input type="text" id="search-input" class="form-control" placeholder="e.g. DH20250101001">
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label class="text-sm" style="display:block;color:var(--text-light);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">From Date</label>
+            <input type="date" id="from-date" class="form-control">
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label class="text-sm" style="display:block;color:var(--text-light);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">To Date</label>
+            <input type="date" id="to-date" class="form-control">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="loadBills()">🔍 Search</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('today')">Today</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('yesterday')">Yesterday</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('week')">This Week</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('month')">This Month</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('year')">This Year</button>
+            <button class="btn btn-ghost btn-sm" onclick="setFilter('all')">All Time</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary bar -->
+      <div class="stats-grid mb-4" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div class="stat-card orange">
+          <div class="stat-icon orange">🧾</div>
+          <div class="stat-value" id="filter-count">0</div>
+          <div class="stat-label">Bills Found</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon green">💰</div>
+          <div class="stat-value" id="filter-sales">₹0</div>
+          <div class="stat-label">Total Sales</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon blue">📈</div>
+          <div class="stat-value" id="filter-profit">₹0</div>
+          <div class="stat-label">Total Profit</div>
+        </div>
+      </div>
+
+      <!-- Bills Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Bills List</h3>
+          <span class="text-sm text-muted" id="bills-range-label">Showing all bills</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Bill No</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Items</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">Profit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bills-table-body">
+              <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bill Detail Modal -->
+<div class="modal-overlay" id="bill-modal" style="display:none;">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="modal-bill-no">Bill Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">Loading...</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      <button class="btn btn-danger" id="delete-bill-btn">🗑️ Delete Bill</button>
+      <button class="btn btn-primary" id="reprint-bill-btn">🖨️ Reprint Bill</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/supabase.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+  let currentBillData = null;
+  let hotelName = 'Dinesh Hotel';
+  let printFooter = 'Thank You! Visit Again';
+
+  (async () => {
+    const user = await Auth.requireAuth();
+    if (!user) return;
+    injectSidebar('history');
+
+    try {
+      hotelName = await Settings.get('hotel_name') || 'Dinesh Hotel';
+      printFooter = await Settings.get('print_footer') || 'Thank You! Visit Again';
+    } catch(e){}
+
+    // Default: today
+    const today = DateUtils.today();
+    document.getElementById('from-date').value = today;
+    document.getElementById('to-date').value = today;
+
+    // Check for hash (direct link from dashboard)
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      await loadBills('all');
+      // find and open that bill
+      const bill = await Bills.getById(hash);
+      if (bill) openBillModal(bill);
+    } else {
+      await loadBills();
+    }
+  })();
+
+  function setFilter(filter) {
+    const today = DateUtils.today();
+    const fromEl = document.getElementById('from-date');
+    const toEl = document.getElementById('to-date');
+
+    switch (filter) {
+      case 'today': fromEl.value = today; toEl.value = today; break;
+      case 'yesterday': fromEl.value = DateUtils.yesterday(); toEl.value = DateUtils.yesterday(); break;
+      case 'week': fromEl.value = DateUtils.weekStart(); toEl.value = today; break;
+      case 'month': fromEl.value = DateUtils.monthStart(); toEl.value = today; break;
+      case 'year': fromEl.value = DateUtils.yearStart(); toEl.value = today; break;
+      case 'all': fromEl.value = '2020-01-01'; toEl.value = today; break;
+    }
+    loadBills();
+  }
+
+  async function loadBills(mode) {
+    const tbody = document.getElementById('bills-table-body');
+    tbody.innerHTML = `<tr><td colspan="7"><div class="loading-spinner"></div></td></tr>`;
+
+    try {
+      let bills;
+      const searchVal = document.getElementById('search-input').value.trim();
+
+      if (searchVal) {
+        bills = await Bills.search(searchVal);
+        document.getElementById('bills-range-label').textContent = `Search results for "${searchVal}"`;
+      } else if (mode === 'all') {
+        bills = await Bills.getAll();
+        document.getElementById('bills-range-label').textContent = 'All time bills';
+      } else {
+        const from = document.getElementById('from-date').value;
+        const to = document.getElementById('to-date').value;
+        if (!from || !to) { Toast.error('Select date range'); return; }
+        bills = await Bills.getByDateRange(from, to);
+        document.getElementById('bills-range-label').textContent = from === to ? formatDate(from) : `${formatDate(from)} to ${formatDate(to)}`;
+      }
+
+      // Update summary
+      const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
+      const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit), 0);
+      document.getElementById('filter-count').textContent = bills.length;
+      document.getElementById('filter-sales').textContent = formatCurrency(totalSales);
+      document.getElementById('filter-profit').textContent = formatCurrency(totalProfit);
+
+      if (bills.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><h3>No bills found</h3><p>Try a different date range or search term</p></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = bills.map(bill => `
+        <tr>
+          <td><span class="mono font-bold" style="color:var(--saffron)">${bill.bill_number}</span></td>
+          <td>${formatDate(bill.bill_date)}</td>
+          <td class="mono text-sm">${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}</td>
+          <td class="text-sm">${bill.bill_items ? bill.bill_items.length : 0} items</td>
+          <td class="text-right mono font-bold">${formatCurrency(bill.total)}</td>
+          <td class="text-right"><span class="text-success mono">+${formatCurrency(bill.total_profit)}</span></td>
+          <td>
+            <button class="btn btn-sm btn-ghost" onclick='openBillModal(${JSON.stringify(bill).replace(/'/g, "&#39;")})'>👁️ View</button>
+          </td>
+        </tr>
+      `).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);">Error loading bills: ${e.message}</td></tr>`;
+    }
+  }
+
+  // Search on Enter
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadBills();
+  });
+
+  function openBillModal(bill) {
+    currentBillData = bill;
+    document.getElementById('modal-bill-no').textContent = `Bill: ${bill.bill_number}`;
+
+    const items = bill.bill_items || [];
+    const itemsHtml = items.map(item => `
+      <tr>
+        <td>${item.item_name}</td>
+        <td class="text-right">${item.quantity}</td>
+        <td class="text-right mono">${formatCurrency(item.selling_price)}</td>
+        <td class="text-right mono font-bold">${formatCurrency(item.line_total)}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="grid-2 mb-4">
+        <div>
+          <div class="text-sm text-muted mb-2">Bill Information</div>
+          <table style="font-size:.88rem;">
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Bill No</td><td class="mono font-bold">${bill.bill_number}</td></tr>
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Date</td><td>${formatDate(bill.bill_date)}</td></tr>
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Time</td><td class="mono">${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}</td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="text-sm text-muted mb-2">Bill Summary</div>
+          <table style="font-size:.88rem;">
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Total Items</td><td>${items.length}</td></tr>
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Grand Total</td><td class="mono font-bold" style="color:var(--saffron)">${formatCurrency(bill.total)}</td></tr>
+            <tr><td style="padding:3px 12px 3px 0;color:var(--text-light);">Profit</td><td class="mono text-success">+${formatCurrency(bill.total_profit)}</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Item</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th></tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+            <tr style="background:var(--cream);">
+              <td colspan="3" class="font-bold text-right" style="font-weight:700;">TOTAL</td>
+              <td class="font-bold text-right mono" style="color:var(--saffron);font-weight:700;">${formatCurrency(bill.total)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    document.getElementById('delete-bill-btn').onclick = () => deleteBill(bill.id);
+    document.getElementById('reprint-bill-btn').onclick = () => {
+      printBill(bill, items, hotelName, printFooter);
+    };
+
+    document.getElementById('bill-modal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('bill-modal').style.display = 'none';
+    currentBillData = null;
+  }
+
+  async function deleteBill(billId) {
+    if (!confirm('Delete this bill permanently? This cannot be undone.')) return;
+    try {
+      await Bills.delete(billId);
+      Toast.success('Bill deleted successfully');
+      closeModal();
+      loadBills();
+    } catch (e) {
+      Toast.error('Failed to delete bill: ' + e.message);
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('bill-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('bill-modal')) closeModal();
+  });
+</script>
+</body>
+</html>

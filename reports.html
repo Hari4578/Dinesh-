@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Profit — Dinesh Hotel</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="print-receipt"></div>
+
+<div class="admin-layout">
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="hamburger-btn" id="hamburger-btn">☰</button>
+        <div>
+          <div class="page-title">Reports & Profit</div>
+          <div class="page-subtitle">Sales and profit analytics</div>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <span class="current-time" id="current-time"></span>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Period Selector -->
+      <div class="card mb-4">
+        <div class="card-body" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <span class="text-sm font-bold" style="color:var(--text-mid);">View Period:</span>
+          <button class="cat-tab active" data-period="today" onclick="setPeriod(this,'today')">Today</button>
+          <button class="cat-tab" data-period="yesterday" onclick="setPeriod(this,'yesterday')">Yesterday</button>
+          <button class="cat-tab" data-period="week" onclick="setPeriod(this,'week')">This Week</button>
+          <button class="cat-tab" data-period="month" onclick="setPeriod(this,'month')">This Month</button>
+          <button class="cat-tab" data-period="year" onclick="setPeriod(this,'year')">This Year</button>
+          <button class="cat-tab" data-period="all" onclick="setPeriod(this,'all')">All Time</button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="date" id="custom-from" class="form-control" style="width:150px;padding:7px 10px;">
+            <span class="text-sm text-muted">to</span>
+            <input type="date" id="custom-to" class="form-control" style="width:150px;padding:7px 10px;">
+            <button class="btn btn-primary btn-sm" onclick="loadCustom()">Go</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card orange">
+          <div class="stat-icon orange">💰</div>
+          <div class="stat-value" id="r-sales">₹0</div>
+          <div class="stat-label">Total Sales</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon green">📈</div>
+          <div class="stat-value" id="r-profit">₹0</div>
+          <div class="stat-label">Total Profit</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon blue">🧾</div>
+          <div class="stat-value" id="r-bills">0</div>
+          <div class="stat-label">Total Bills</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon purple">📊</div>
+          <div class="stat-value" id="r-margin">0%</div>
+          <div class="stat-label">Profit Margin</div>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <!-- Period Breakdown -->
+        <div class="card">
+          <div class="card-header"><h3>📊 Financial Summary</h3></div>
+          <div class="card-body">
+            <div class="total-row" style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-weight:600;">Total Sales</span>
+              <span class="mono font-bold" id="fs-sales">₹0.00</span>
+            </div>
+            <div class="total-row" style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-weight:600;">Total Cost</span>
+              <span class="mono" id="fs-cost">₹0.00</span>
+            </div>
+            <div class="total-row" style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-weight:600;">Gross Profit</span>
+              <span class="mono font-bold text-success" id="fs-profit">₹0.00</span>
+            </div>
+            <div class="total-row" style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-weight:600;">Total Bills</span>
+              <span class="mono" id="fs-bills">0</span>
+            </div>
+            <div class="total-row" style="padding:8px 0;">
+              <span style="font-weight:600;">Avg Bill Value</span>
+              <span class="mono" id="fs-avg">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Trend -->
+        <div class="card">
+          <div class="card-header"><h3>🗓️ Monthly Trend</h3></div>
+          <div class="card-body" id="monthly-trend">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions List -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Transactions</h3>
+          <span class="text-sm text-muted" id="trans-count"></span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Bill No</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th class="text-right">Sales</th>
+                <th class="text-right">Cost</th>
+                <th class="text-right">Profit</th>
+                <th class="text-right">Margin</th>
+              </tr>
+            </thead>
+            <tbody id="trans-table">
+              <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/supabase.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+  (async () => {
+    const user = await Auth.requireAuth();
+    if (!user) return;
+    injectSidebar('reports');
+    // Default: today
+    const today = DateUtils.today();
+    document.getElementById('custom-from').value = today;
+    document.getElementById('custom-to').value = today;
+    await loadReport(today, today);
+    await loadMonthlyTrend();
+  })();
+
+  async function setPeriod(btn, period) {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const today = DateUtils.today();
+    let from, to = today;
+
+    switch (period) {
+      case 'today': from = today; break;
+      case 'yesterday': from = DateUtils.yesterday(); to = from; break;
+      case 'week': from = DateUtils.weekStart(); break;
+      case 'month': from = DateUtils.monthStart(); break;
+      case 'year': from = DateUtils.yearStart(); break;
+      case 'all': from = '2020-01-01'; break;
+    }
+
+    document.getElementById('custom-from').value = from;
+    document.getElementById('custom-to').value = to;
+    await loadReport(from, to);
+  }
+
+  async function loadCustom() {
+    const from = document.getElementById('custom-from').value;
+    const to = document.getElementById('custom-to').value;
+    if (!from || !to) { Toast.error('Select valid dates'); return; }
+    await loadReport(from, to);
+  }
+
+  async function loadReport(from, to) {
+    const tbody = document.getElementById('trans-table');
+    tbody.innerHTML = `<tr><td colspan="7"><div class="loading-spinner"></div></td></tr>`;
+
+    try {
+      const bills = await Bills.getByDateRange(from, to);
+
+      const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
+      const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit), 0);
+      const totalCost = totalSales - totalProfit;
+      const margin = totalSales > 0 ? (totalProfit / totalSales * 100) : 0;
+      const avgBill = bills.length > 0 ? totalSales / bills.length : 0;
+
+      // Update cards
+      document.getElementById('r-sales').textContent = formatCurrency(totalSales);
+      document.getElementById('r-profit').textContent = formatCurrency(totalProfit);
+      document.getElementById('r-bills').textContent = bills.length;
+      document.getElementById('r-margin').textContent = margin.toFixed(1) + '%';
+
+      // Summary
+      document.getElementById('fs-sales').textContent = formatCurrency(totalSales);
+      document.getElementById('fs-cost').textContent = formatCurrency(totalCost);
+      document.getElementById('fs-profit').textContent = formatCurrency(totalProfit);
+      document.getElementById('fs-bills').textContent = bills.length;
+      document.getElementById('fs-avg').textContent = formatCurrency(avgBill);
+
+      document.getElementById('trans-count').textContent = `${bills.length} transaction${bills.length !== 1 ? 's' : ''}`;
+
+      if (bills.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📊</div><h3>No transactions</h3><p>No bills found in this period</p></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = bills.map(bill => {
+        const cost = Number(bill.total) - Number(bill.total_profit);
+        const m = bill.total > 0 ? (bill.total_profit / bill.total * 100) : 0;
+        return `
+          <tr>
+            <td><span class="mono" style="color:var(--saffron);font-weight:700;">${bill.bill_number}</span></td>
+            <td>${formatDate(bill.bill_date)}</td>
+            <td>${bill.bill_items?.length || 0}</td>
+            <td class="text-right mono">${formatCurrency(bill.total)}</td>
+            <td class="text-right mono text-muted">${formatCurrency(cost)}</td>
+            <td class="text-right mono text-success font-bold">+${formatCurrency(bill.total_profit)}</td>
+            <td class="text-right"><span class="badge badge-success">${m.toFixed(0)}%</span></td>
+          </tr>
+        `;
+      }).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadMonthlyTrend() {
+    const container = document.getElementById('monthly-trend');
+    try {
+      // Get last 6 months
+      const rows = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const from = `${year}-${month}-01`;
+        const lastDay = new Date(year, d.getMonth() + 1, 0).getDate();
+        const to = `${year}-${month}-${lastDay}`;
+        const summary = await Reports.getSummary(from, to);
+        rows.push({ label: d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }), ...summary });
+      }
+
+      const maxSales = Math.max(...rows.map(r => r.totalSales), 1);
+
+      container.innerHTML = rows.map(row => {
+        const pct = (row.totalSales / maxSales * 100).toFixed(1);
+        return `
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px;">
+              <span style="color:var(--text-mid);font-weight:600;">${row.label}</span>
+              <span class="mono">${formatCurrency(row.totalSales)} <span class="text-success">(+${formatCurrency(row.totalProfit)})</span></span>
+            </div>
+            <div style="height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--saffron),var(--gold));border-radius:4px;transition:width .5s ease;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+    } catch (e) {
+      container.innerHTML = `<p style="color:var(--danger);font-size:.82rem;">Failed to load trend</p>`;
+    }
+  }
+</script>
+</body>
+</html>
