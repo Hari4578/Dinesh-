@@ -230,14 +230,7 @@
   document.getElementById('menu-search').addEventListener('input', renderTable);
 
   // Profit preview
-  function updateProfitPreview() {
-    const sell = parseFloat(document.getElementById('item-selling').value) || 0;
-    const cost = parseFloat(document.getElementById('item-cost').value) || 0;
-    document.getElementById('profit-preview').textContent = formatCurrency(sell - cost);
-  }
 
-  document.getElementById('item-selling').addEventListener('input', updateProfitPreview);
-  document.getElementById('item-cost').addEventListener('input', updateProfitPreview);
 
   // Modal
   function openItemModal(item = null) {
