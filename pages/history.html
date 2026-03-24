@@ -86,7 +86,6 @@
                 <th>Time</th>
                 <th>Items</th>
                 <th class="text-right">Total</th>
-                <th class="text-right">Profit</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -191,10 +190,9 @@
 
       // Update summary
       const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
-      const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit), 0);
       document.getElementById('filter-count').textContent = bills.length;
       document.getElementById('filter-sales').textContent = formatCurrency(totalSales);
-      document.getElementById('filter-profit').textContent = formatCurrency(totalProfit);
+    
 
       if (bills.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><h3>No bills found</h3><p>Try a different date range or search term</p></div></td></tr>`;
@@ -208,7 +206,6 @@
           <td class="mono text-sm">${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}</td>
           <td class="text-sm">${bill.bill_items ? bill.bill_items.length : 0} items</td>
           <td class="text-right mono font-bold">${formatCurrency(bill.total)}</td>
-          <td class="text-right"><span class="text-success mono">+${formatCurrency(bill.total_profit)}</span></td>
           <td>
             <button class="btn btn-sm btn-ghost" onclick='openBillModal(${JSON.stringify(bill).replace(/'/g, "&#39;")})'>👁️ View</button>
           </td>
