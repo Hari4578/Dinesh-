@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Menu Management — Dinesh Hotel</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -49,7 +48,8 @@
       </div>
 
       <!-- Stats -->
-      <div class="stats-grid mb-4" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+      <div class="stats-grid mb-4" 
+           style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
         <div class="stat-card orange">
           <div class="stat-icon orange">🍛</div>
           <div class="stat-value" id="stat-total">0</div>
@@ -85,7 +85,11 @@
               </tr>
             </thead>
             <tbody id="menu-table-body">
-              <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+              <tr>
+                <td colspan="5">
+                  <div class="loading-spinner"></div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -107,7 +111,8 @@
 
       <div class="form-group">
         <label>Item Name *</label>
-        <input type="text" id="item-name" class="form-control" placeholder="e.g. Masala Dosa">
+        <input type="text" id="item-name" class="form-control" 
+               placeholder="e.g. Masala Dosa">
       </div>
 
       <div class="grid-2">
@@ -115,8 +120,8 @@
           <label>Category *</label>
           <select id="item-category" class="form-control">
             <option value="Breakfast">Breakfast</option>
-            <option value="Meals">Meals</option>
-            <option value="Tiffin">Tiffin</option>
+            <option value="Meals">Lunch</option>
+            <option value="Tiffin">Dinner</option>
             <option value="Drinks">Drinks</option>
             <option value="Snacks">Snacks</option>
           </select>
@@ -130,21 +135,22 @@
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Selling Price (₹) *</label>
-          <input type="number" id="item-selling" class="form-control" placeholder="0.00" min="0" step="0.50">
-        </div>
-
+      <div class="form-group">
+        <label>Selling Price (₹) *</label>
+        <input type="number" id="item-selling" class="form-control" 
+               placeholder="0.00" min="0" step="0.50">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeItemModal()">Cancel</button>
-      <button class="btn btn-primary" id="save-item-btn" onclick="saveItem()">💾 Save Item</button>
+      <button class="btn btn-primary" id="save-item-btn" 
+              onclick="saveItem()">💾 Save Item</button>
     </div>
   </div>
 </div>
 
+<!-- Load Supabase UMD -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../js/supabase.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/sidebar.js"></script>
@@ -156,24 +162,36 @@
     const user = await Auth.requireAuth();
     if (!user) return;
     injectSidebar('menu');
+    document.getElementById('hamburger-btn')
+      .addEventListener('click', function() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('show');
+    });
     await loadItems();
   })();
 
   async function loadItems() {
     const tbody = document.getElementById('menu-table-body');
+    tbody.innerHTML = `<tr><td colspan="5">
+      <div class="loading-spinner"></div></td></tr>`;
     try {
       allItems = await Menu.getAll();
       updateStats();
       renderTable();
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);">Failed to load menu: ${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" 
+        style="text-align:center;color:var(--danger);">
+        Failed to load: ${e.message}</td></tr>`;
+      Toast.error('Failed to load menu: ' + e.message);
     }
   }
 
   function updateStats() {
     document.getElementById('stat-total').textContent = allItems.length;
-    document.getElementById('stat-available').textContent = allItems.filter(i => i.available).length;
-    document.getElementById('stat-unavailable').textContent = allItems.filter(i => !i.available).length;
+    document.getElementById('stat-available').textContent = 
+      allItems.filter(i => i.available).length;
+    document.getElementById('stat-unavailable').textContent = 
+      allItems.filter(i => !i.available).length;
   }
 
   function renderTable() {
@@ -181,47 +199,65 @@
     const search = document.getElementById('menu-search').value.toLowerCase();
 
     let items = allItems.filter(item => {
-      const matchCat = activeFilter === 'All' || item.category === activeFilter;
-      const matchSearch = !search || item.name.toLowerCase().includes(search);
+      const matchCat = activeFilter === 'All' || 
+                       item.category === activeFilter;
+      const matchSearch = !search || 
+                          item.name.toLowerCase().includes(search);
       return matchCat && matchSearch;
     });
 
-    document.getElementById('items-count').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+    document.getElementById('items-count').textContent = 
+      `${items.length} item${items.length !== 1 ? 's' : ''}`;
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🍛</div><h3>No items found</h3><p>Add your first menu item</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-icon">🍛</div>
+          <h3>No items found</h3>
+          <p>Add your first menu item</p>
+        </div></td></tr>`;
       return;
     }
 
-    tbody.innerHTML = items.map(item => 
-      return `
-        <tr>
-          <td class="font-bold">${item.name}</td>
-          <td><span class="badge badge-info">${item.category}</span></td>
-          <td class="text-right mono">₹${Number(item.selling_price).toFixed(2)}</td>
-          <td>
-            <span class="badge ${item.available ? 'badge-success' : 'badge-danger'}">
-              ${item.available ? '✅ Available' : '🚫 Off'}
-            </span>
-          </td>
-          <td style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-sm btn-ghost" onclick='editItem(${JSON.stringify(item).replace(/'/g,"&#39;")})'>✏️ Edit</button>
-            <button class="btn btn-sm" style="background:${item.available?'var(--warning-bg)':'var(--success-bg)'};color:${item.available?'var(--warning)':'var(--success)'};border:none;" 
-              onclick="toggleAvail('${item.id}', ${item.available})">
-              ${item.available ? '🚫 Disable' : '✅ Enable'}
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g,"\\'")}')">🗑️</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td class="font-bold">${item.name}</td>
+        <td><span class="badge badge-info">${item.category}</span></td>
+        <td class="text-right mono">
+          ₹${Number(item.selling_price).toFixed(2)}
+        </td>
+        <td>
+          <span class="badge ${item.available ? 
+            'badge-success' : 'badge-danger'}">
+            ${item.available ? '✅ Available' : '🚫 Off'}
+          </span>
+        </td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-ghost" 
+            onclick='editItem(${JSON.stringify(item)
+              .replace(/'/g,"&#39;")})'>✏️ Edit</button>
+          <button class="btn btn-sm" 
+            style="background:${item.available ?
+              'var(--warning-bg)':'var(--success-bg)'};
+              color:${item.available ?
+              'var(--warning)':'var(--success)'};border:none;"
+            onclick="toggleAvail('${item.id}', ${item.available})">
+            ${item.available ? '🚫 Disable' : '✅ Enable'}
+          </button>
+          <button class="btn btn-sm btn-danger" 
+            onclick="deleteItem('${item.id}', 
+            '${item.name.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
   }
 
   // Filters
   document.getElementById('filter-tabs').addEventListener('click', e => {
     const tab = e.target.closest('.cat-tab');
     if (!tab) return;
-    document.querySelectorAll('#filter-tabs .cat-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#filter-tabs .cat-tab')
+      .forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     activeFilter = tab.dataset.cat;
     renderTable();
@@ -229,18 +265,18 @@
 
   document.getElementById('menu-search').addEventListener('input', renderTable);
 
-  // Profit preview
-
-
   // Modal
   function openItemModal(item = null) {
     document.getElementById('edit-id').value = item?.id || '';
     document.getElementById('item-name').value = item?.name || '';
-    document.getElementById('item-category').value = item?.category || 'Snacks';
-    document.getElementById('item-selling').value = item?.selling_price || '';
-    document.getElementById('item-available').value = item?.available !== false ? 'true' : 'false';
-    document.getElementById('modal-title').textContent = item ? 'Edit Menu Item' : 'Add Menu Item';
-    updateProfitPreview();
+    document.getElementById('item-category').value = 
+      item?.category || 'Snacks';
+    document.getElementById('item-selling').value = 
+      item?.selling_price || '';
+    document.getElementById('item-available').value = 
+      item?.available !== false ? 'true' : 'false';
+    document.getElementById('modal-title').textContent = 
+      item ? 'Edit Menu Item' : 'Add Menu Item';
     document.getElementById('item-modal').style.display = 'flex';
     setTimeout(() => document.getElementById('item-name').focus(), 100);
   }
@@ -254,31 +290,41 @@
   async function saveItem() {
     const name = document.getElementById('item-name').value.trim();
     const category = document.getElementById('item-category').value;
-    const selling_price = parseFloat(document.getElementById('item-selling').value);
-    const cost_price = 0;
+    const selling_price = parseFloat(
+      document.getElementById('item-selling').value);
     const available = document.getElementById('item-available').value === 'true';
     const editId = document.getElementById('edit-id').value;
 
     if (!name) { Toast.error('Item name is required'); return; }
-    if (isNaN(selling_price) || selling_price < 0) { Toast.error('Enter valid selling price'); return; }
+    if (isNaN(selling_price) || selling_price < 0) {
+      Toast.error('Enter valid selling price'); return;
+    }
 
     const btn = document.getElementById('save-item-btn');
-    btn.disabled = true; btn.textContent = '⏳ Saving...';
+    btn.disabled = true;
+    btn.textContent = '⏳ Saving...';
 
     try {
       if (editId) {
-        await Menu.update(editId, { name, category, selling_price, cost_price, available });
+        await Menu.update(editId, {
+          name, category, selling_price,
+          cost_price: 0, available
+        });
         Toast.success('Item updated successfully!');
       } else {
-        await Menu.create({ name, category, selling_price, cost_price, available });
+        await Menu.create({
+          name, category, selling_price,
+          cost_price: 0, available
+        });
         Toast.success('Item added successfully!');
       }
       closeItemModal();
       await loadItems();
     } catch (e) {
-      Toast.error('Failed to save item: ' + e.message);
+      Toast.error('Failed to save: ' + e.message);
     } finally {
-      btn.disabled = false; btn.textContent = '💾 Save Item';
+      btn.disabled = false;
+      btn.textContent = '💾 Save Item';
     }
   }
 
@@ -287,21 +333,25 @@
       await Menu.update(id, { available: !current });
       Toast.success(`Item ${current ? 'disabled' : 'enabled'}`);
       await loadItems();
-    } catch (e) { Toast.error('Failed to update: ' + e.message); }
+    } catch (e) {
+      Toast.error('Failed to update: ' + e.message);
+    }
   }
 
   async function deleteItem(id, name) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete "${name}"? Cannot be undone.`)) return;
     try {
       await Menu.delete(id);
       Toast.success('Item deleted');
       await loadItems();
-    } catch (e) { Toast.error('Failed to delete: ' + e.message); }
+    } catch (e) {
+      Toast.error('Failed to delete: ' + e.message);
+    }
   }
 
-  // Modal close on overlay click
   document.getElementById('item-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('item-modal')) closeItemModal();
+    if (e.target === document.getElementById('item-modal')) 
+      closeItemModal();
   });
 </script>
 </body>
