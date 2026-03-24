@@ -148,12 +148,10 @@ async function loadStats() {
     ]);
 
     document.getElementById('today-sales').textContent = formatCurrency(todayData.totalSales);
-    document.getElementById('today-profit').textContent = formatCurrency(todayData.totalProfit);
     document.getElementById('today-bills').textContent = todayData.billCount;
     document.getElementById('month-sales').textContent = formatCurrency(monthData.totalSales);
 
     document.getElementById('m-sales').textContent = formatCurrency(monthData.totalSales);
-    document.getElementById('m-profit').textContent = formatCurrency(monthData.totalProfit);
     document.getElementById('m-bills').textContent = monthData.billCount;
     document.getElementById('m-avg').textContent = monthData.billCount > 0
       ? formatCurrency(monthData.totalSales / monthData.billCount)
