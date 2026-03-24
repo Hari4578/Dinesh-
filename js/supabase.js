@@ -263,7 +263,6 @@ const Reports = {
     if (error) throw error;
     const bills = data || [];
     const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
-    const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit), 0);
     return {
       totalSales,
       totalProfit,
