@@ -256,13 +256,12 @@
     const name = document.getElementById('item-name').value.trim();
     const category = document.getElementById('item-category').value;
     const selling_price = parseFloat(document.getElementById('item-selling').value);
-    const cost_price = parseFloat(document.getElementById('item-cost').value);
+    const cost_price = 0;
     const available = document.getElementById('item-available').value === 'true';
     const editId = document.getElementById('edit-id').value;
 
     if (!name) { Toast.error('Item name is required'); return; }
     if (isNaN(selling_price) || selling_price < 0) { Toast.error('Enter valid selling price'); return; }
-    if (isNaN(cost_price) || cost_price < 0) { Toast.error('Enter valid cost price'); return; }
 
     const btn = document.getElementById('save-item-btn');
     btn.disabled = true; btn.textContent = '⏳ Saving...';
