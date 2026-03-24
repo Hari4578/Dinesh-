@@ -1,0 +1,28 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
+}
+```
+
+---
+
+### Step 6
+Scroll down → Tap **"Commit changes"**
+
+---
+
+### Step 7
+Tap **"Commit changes"** again on the popup
+
+---
+
+### Step 8
+Wait **2 minutes** — Vercel auto deploys
+
+---
+
+### Step 9
+Open your site:
+```
+https://dinesh-plum.vercel.app
