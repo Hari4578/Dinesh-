@@ -128,6 +128,7 @@
   if (!user) return;
 
   injectSidebar('dashboard');
+  initSidebar();
 
   // Set today date
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
