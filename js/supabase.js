@@ -1,17 +1,21 @@
 // ============================================================
-// supabase.js - Supabase Client Configuration
-// Replace SUPABASE_URL and SUPABASE_ANON_KEY with your values
-// from: https://supabase.com/dashboard → Project Settings → API
-// NEVER put service_role key here - only anon key is safe in frontend
+// supabase.js - Fixed Version
 // ============================================================
 
 const SUPABASE_URL = 'https://gtujlykdrfwqbdschsya.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ypgOpoGy5hn1CVAGfFPvkw_SuWj4k1c';
 
-const { createClient } = window supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Wait for supabase to be available
+function getSupabaseClient() {
+  if (window.supabase && window.supabase.createClient) {
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  throw new Error('Supabase not loaded');
+}
 
-// Auth helpers
+const db = getSupabaseClient();
+
+// ── Auth helpers ──
 const Auth = {
   async signIn(email, password) {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
@@ -20,14 +24,18 @@ const Auth = {
   },
 
   async signOut() {
-    const { error } = await db.auth.signOut();
-    if (error) throw error;
-    window.location.href = '../index.html';
+    await db.auth.signOut();
+    window.location.href = '/index.html';
   },
 
   async getUser() {
     const { data: { user } } = await db.auth.getUser();
     return user;
+  },
+
+  async getSession() {
+    const { data: { session } } = await db.auth.getSession();
+    return session;
   },
 
   async updatePassword(newPassword) {
@@ -36,62 +44,88 @@ const Auth = {
   },
 
   async resetPassword(email) {
-    const { error } = await db.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/pages/reset-password.html'
-    });
+    const { error } = await db.auth.resetPasswordForEmail(email);
     if (error) throw error;
   },
 
-  // Guard: redirect to login if not authenticated
   async requireAuth() {
-    const user = await this.getUser();
-    if (!user) {
-      window.location.href = '../index.html';
+    const session = await this.getSession();
+    if (!session) {
+      window.location.href = '/index.html';
       return null;
     }
-    return user;
+    return session.user;
   }
 };
 
-// Menu helpers
+// ── Menu helpers ──
 const Menu = {
   async getAll() {
-    const { data, error } = await db.from('menu_items').select('*').order('category').order('name');
-    if (error) throw error;
-    return data;
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .order('category')
+      .order('name');
+    if (error) {
+      console.error('Menu getAll error:', error);
+      throw error;
+    }
+    return data || [];
   },
 
   async getAvailable() {
-    const { data, error } = await db.from('menu_items').select('*').eq('available', true).order('category').order('name');
-    if (error) throw error;
-    return data;
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .eq('available', true)
+      .order('category')
+      .order('name');
+    if (error) {
+      console.error('Menu getAvailable error:', error);
+      throw error;
+    }
+    return data || [];
   },
 
   async create(item) {
-    const { data, error } = await db.from('menu_items').insert(item).select().single();
+    const { data, error } = await db
+      .from('menu_items')
+      .insert(item)
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
 
   async update(id, updates) {
-    const { data, error } = await db.from('menu_items').update(updates).eq('id', id).select().single();
+    const { data, error } = await db
+      .from('menu_items')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
 
   async delete(id) {
-    const { error } = await db.from('menu_items').delete().eq('id', id);
+    const { error } = await db
+      .from('menu_items')
+      .delete()
+      .eq('id', id);
     if (error) throw error;
   }
 };
 
-// Bills helpers
+// ── Bills helpers ──
 const Bills = {
   async generateBillNumber() {
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-    const { count } = await db.from('bills').select('*', { count: 'exact', head: true })
-      .eq('bill_date', today.toISOString().slice(0, 10));
+    const today = new Date().toISOString().slice(0, 10);
+    const dateStr = today.replace(/-/g, '');
+    const { count } = await db
+      .from('bills')
+      .select('*', { count: 'exact', head: true })
+      .eq('bill_date', today);
     const seq = String((count || 0) + 1).padStart(3, '0');
     return `DH${dateStr}${seq}`;
   },
@@ -99,21 +133,23 @@ const Bills = {
   async create(billData, items) {
     const user = await Auth.getUser();
     const billNumber = await this.generateBillNumber();
-
     const total = items.reduce((s, i) => s + i.line_total, 0);
     const totalProfit = items.reduce((s, i) => s + i.line_profit, 0);
-
     const now = new Date();
 
-    const { data: bill, error: billErr } = await db.from('bills').insert({
-      bill_number: billNumber,
-      bill_date: now.toISOString().slice(0, 10),
-      bill_time: now.toTimeString().slice(0, 8),
-      subtotal: total,
-      total: total,
-      total_profit: totalProfit,
-      created_by: user.id
-    }).select().single();
+    const { data: bill, error: billErr } = await db
+      .from('bills')
+      .insert({
+        bill_number: billNumber,
+        bill_date: now.toISOString().slice(0, 10),
+        bill_time: now.toTimeString().slice(0, 8),
+        subtotal: total,
+        total: total,
+        total_profit: totalProfit,
+        created_by: user.id
+      })
+      .select()
+      .single();
 
     if (billErr) throw billErr;
 
@@ -128,75 +164,111 @@ const Bills = {
       line_profit: i.line_profit
     }));
 
-    const { error: itemsErr } = await db.from('bill_items').insert(billItems);
+    const { error: itemsErr } = await db
+      .from('bill_items')
+      .insert(billItems);
     if (itemsErr) throw itemsErr;
 
     return bill;
   },
 
-  async getByDate(date) {
-    const { data, error } = await db.from('bills').select('*, bill_items(*)').eq('bill_date', date).order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
-  },
-
   async getByDateRange(from, to) {
-    const { data, error } = await db.from('bills').select('*, bill_items(*)').gte('bill_date', from).lte('bill_date', to).order('bill_date', { ascending: false }).order('created_at', { ascending: false });
+    const { data, error } = await db
+      .from('bills')
+      .select('*, bill_items(*)')
+      .gte('bill_date', from)
+      .lte('bill_date', to)
+      .order('bill_date', { ascending: false })
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async getAll() {
-    const { data, error } = await db.from('bills').select('*, bill_items(*)').order('bill_date', { ascending: false }).order('created_at', { ascending: false });
+    const { data, error } = await db
+      .from('bills')
+      .select('*, bill_items(*)')
+      .order('bill_date', { ascending: false })
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async getById(id) {
-    const { data, error } = await db.from('bills').select('*, bill_items(*)').eq('id', id).single();
+    const { data, error } = await db
+      .from('bills')
+      .select('*, bill_items(*)')
+      .eq('id', id)
+      .single();
     if (error) throw error;
     return data;
   },
 
   async search(query) {
-    const { data, error } = await db.from('bills').select('*, bill_items(*)').ilike('bill_number', `%${query}%`).order('created_at', { ascending: false });
+    const { data, error } = await db
+      .from('bills')
+      .select('*, bill_items(*)')
+      .ilike('bill_number', `%${query}%`)
+      .order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async delete(id) {
-    const { error } = await db.from('bills').delete().eq('id', id);
+    const { error } = await db
+      .from('bills')
+      .delete()
+      .eq('id', id);
     if (error) throw error;
   }
 };
 
-// Settings helpers
+// ── Settings helpers ──
 const Settings = {
   async get(key) {
-    const { data, error } = await db.from('settings').select('value').eq('key', key).single();
+    const { data, error } = await db
+      .from('settings')
+      .select('value')
+      .eq('key', key)
+      .single();
     if (error) return null;
     return data?.value;
   },
 
   async getAll() {
-    const { data, error } = await db.from('settings').select('*');
+    const { data, error } = await db
+      .from('settings')
+      .select('*');
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async set(key, value) {
-    const { error } = await db.from('settings').update({ value }).eq('key', key);
+    const { error } = await db
+      .from('settings')
+      .update({ value })
+      .eq('key', key);
     if (error) throw error;
   }
 };
 
-// Reports helpers
+// ── Reports helpers ──
 const Reports = {
   async getSummary(from, to) {
-    const { data, error } = await db.from('bills').select('total, total_profit, bill_date').gte('bill_date', from).lte('bill_date', to);
+    const { data, error } = await db
+      .from('bills')
+      .select('total, total_profit, bill_date')
+      .gte('bill_date', from)
+      .lte('bill_date', to);
     if (error) throw error;
-    const totalSales = data.reduce((s, b) => s + Number(b.total), 0);
-    const totalProfit = data.reduce((s, b) => s + Number(b.total_profit), 0);
-    return { totalSales, totalProfit, billCount: data.length, bills: data };
+    const bills = data || [];
+    const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
+    const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit), 0);
+    return {
+      totalSales,
+      totalProfit,
+      billCount: bills.length,
+      bills
+    };
   }
 };
