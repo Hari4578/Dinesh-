@@ -142,85 +142,8 @@ function printBill(bill, items, hotelName = 'Dinesh Hotel', footer = 'Thank You!
        onerror="this.style.display='none'">
 </div>
 <div class="receipt-hotel-name">${hotelName}</div>
-```
 
----
 
-## 📋 Logo Size Recommendation
-
-| Where | Size |
-|-------|------|
-| Login page | 80x80 px |
-| Sidebar | 44x44 px |
-| Print receipt | 60x60 px |
-
----
-
-## ✅ Best Logo Format
-```
-Format  → PNG
-Background → Transparent (best!)
-Size → 500x500 px minimum
-Color → Any color
-```
-
----
-
-## 🎯 Quick Summary
-```
-Step 1 → Create logo on Canva (free)
-Step 2 → Download as PNG
-Step 3 → Upload to GitHub images folder
-Step 4 → Update index.html (login page)
-Step 5 → Update sidebar.js (all pages)
-Step 6 → Update app.js (print receipt)
-Step 7 → Commit all changes
-Step 8 → Wait 2 minutes → Vercel deploys
-Step 9 → Logo shows everywhere! ✅
-```
-
----
-
-## 💡 Pro Tip for Selling to Customers
-```
-When selling to new customer:
-1. Ask them for their logo
-2. If no logo → create on Canva free
-3. Upload their logo to their GitHub
-4. Change hotel name everywhere
-5. Professional website ready! ✅
-        <div class="receipt-tagline">Restaurant & Hotel</div>
-      </div>
-      <hr class="receipt-divider">
-      <div class="receipt-meta">
-        <div>Bill No : <strong>${bill.bill_number}</strong></div>
-        <div>Date    : ${date}</div>
-        <div>Time    : ${time}</div>
-      </div>
-      <hr class="receipt-divider">
-      <div class="receipt-items-header">
-        <span style="flex:1">Item</span>
-        <span style="width:30px;text-align:center">Qty</span>
-        <span style="width:45px;text-align:right">Rate</span>
-        <span style="width:50px;text-align:right">Amt</span>
-      </div>
-      ${itemsHtml}
-      <div class="receipt-total">
-        <span>TOTAL</span>
-        <span>Rs. ${Number(bill.total).toFixed(0)}</span>
-      </div>
-      <hr class="receipt-divider">
-      <div class="receipt-footer">
-        <div style="font-weight:700">${footer}</div>
-        <div style="margin-top:4px;font-size:10px">Powered by Dinesh Hotel System</div>
-      </div>
-    </div>
-  `;
-
-  receipt.style.display = 'block';
-  window.print();
-  receipt.style.display = 'none';
-}
 
 // ── Set user info in sidebar ──
 async function loadUserInfo() {
