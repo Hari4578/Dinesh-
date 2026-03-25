@@ -160,7 +160,6 @@ const Bills = {
         bill_time: now.toTimeString().slice(0, 8),
         subtotal: total,
         total: total,
-        total_profit: 0,
         created_by: user.id
       })
       .select()
@@ -177,9 +176,7 @@ const Bills = {
       item_name: i.item_name,
       quantity: i.quantity,
       selling_price: i.selling_price,
-      cost_price: 0,
       line_total: i.line_total,
-      line_profit: 0
     }));
 
     const { error: itemsErr } = await this.getDB()
