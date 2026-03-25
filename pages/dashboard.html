@@ -164,7 +164,11 @@ async function loadStats() {
 async function loadRecentBills() {
   const tbody = document.getElementById('recent-bills-body');
   try {
-    const bills = await Bills.getAll();
+    const { data: bills, error } = await db.from('bills').select('*');
+
+if (error) {
+  console.error(error);
+}
     const recent = bills.slice(0, 10);
 
     if (recent.length === 0) {
