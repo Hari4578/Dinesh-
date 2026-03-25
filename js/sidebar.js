@@ -67,7 +67,7 @@ function injectSidebar(activePage) {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
         if (confirm('Are you sure you want to sign out?')) {
-          await Auth.signOut();
+          await Auth.logout();
         }
       });
     }
