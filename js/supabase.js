@@ -8,27 +8,58 @@ const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===============================
-// AUTH SYSTEM
+// MENU API (FULL FIX)
 // ===============================
-const Auth = {
-  async login(email, password) {
-    const { data, error } = await db.auth.signInWithPassword({
-      email,
-      password
-    });
+const Menu = {
 
-    if (error) {
-      console.error(error);
-      alert("Login failed");
-      return null;
-    }
+  async getAll() {
+    const { data, error } = await db
+      .from("menu_items")
+      .select("*")
+      .order("name");
 
-    return data.user;
+    if (error) throw error;
+    return data;
   },
 
-  async logout() {
-    await db.auth.signOut();
-    window.location.href = "../index.html";
+  async create(item) {
+    const { error } = await db
+      .from("menu_items")
+      .insert([item]);
+
+    if (error) throw error;
+  },
+
+  async update(id, item) {
+    const { error } = await db
+      .from("menu_items")
+      .update(item)
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+
+  async delete(id) {
+    const { error } = await db
+      .from("menu_items")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  }
+};
+
+// ===============================
+// AUTH FIX
+// ===============================
+const Auth = {
+  async requireAuth() {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) {
+      window.location.href = "../index.html";
+      return null;
+    }
+    return session.user;
   },
 
   async getUser() {
@@ -36,88 +67,8 @@ const Auth = {
     return user;
   },
 
-  async requireAuth() {
-    const { data: { session } } = await db.auth.getSession();
-
-    if (!session) {
-      window.location.href = "../index.html";
-      return null;
-    }
-
-    return session.user;
-  }
-};
-
-// ===============================
-// MENU API
-// ===============================
-const Menu = {
-  async getAll() {
-    const { data, error } = await db
-      .from("menu_items")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error("Menu error:", error);
-      return [];
-    }
-
-    return data;
-  }
-};
-
-// ===============================
-// BILLS API
-// ===============================
-const Bills = {
-  async getAll() {
-    const { data, error } = await db
-      .from("bills")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Bills error:", error);
-      return [];
-    }
-
-    return data;
-  },
-
-  async create(bill) {
-    const { data, error } = await db
-      .from("bills")
-      .insert([bill]);
-
-    if (error) {
-      console.error(error);
-      alert("Failed to save bill");
-    }
-
-    return data;
-  }
-};
-
-// ===============================
-// REPORTS API
-// ===============================
-const Reports = {
-  async getSummary(from, to) {
-    const { data, error } = await db
-      .from("bills")
-      .select("*")
-      .gte("bill_date", from)
-      .lte("bill_date", to);
-
-    if (error) {
-      console.error(error);
-      return { totalSales: 0, billCount: 0 };
-    }
-
-    const totalSales = data.reduce((sum, b) => sum + Number(b.total), 0);
-    const billCount = data.length;
-
-    return { totalSales, billCount };
+  async logout() {
+    await db.auth.signOut();
+    window.location.href = "../index.html";
   }
 };
