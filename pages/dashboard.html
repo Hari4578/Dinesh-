@@ -136,16 +136,31 @@
   await loadStats();
   await loadRecentBills();
 })();
-
-async function loadStats() {
+  async function loadStats() {
   try {
-    const today = DateUtils.today();
-    const monthStart = DateUtils.monthStart();
+    const { data: bills, error } = await db.from('bills').select('*');
 
-    const [todayData, monthData] = await Promise.all([
-      Reports.getSummary(today, today),
-      Reports.getSummary(monthStart, today)
-    ]);
+    if (error) throw error;
+
+    const totalSales = bills.reduce((sum, b) => sum + Number(b.total || 0), 0);
+    const totalProfit = bills.reduce((sum, b) => sum + Number(b.total_profit || 0), 0);
+    const billCount = bills.length;
+
+    document.getElementById('today-sales').textContent = formatCurrency(totalSales);
+    document.getElementById('today-profit').textContent = formatCurrency(totalProfit);
+    document.getElementById('today-bills').textContent = billCount;
+    document.getElementById('month-sales').textContent = formatCurrency(totalSales);
+
+    document.getElementById('m-sales').textContent = formatCurrency(totalSales);
+    document.getElementById('m-profit').textContent = formatCurrency(totalProfit);
+    document.getElementById('m-bills').textContent = billCount;
+    document.getElementById('m-avg').textContent =
+      billCount > 0 ? formatCurrency(totalSales / billCount) : '₹0.00';
+
+  } catch (e) {
+    console.error("Stats error:", e);
+  }
+  }
 
     document.getElementById('today-sales').textContent = formatCurrency(todayData.totalSales);
     document.getElementById('today-bills').textContent = todayData.billCount;
