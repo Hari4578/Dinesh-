@@ -134,7 +134,61 @@ function printBill(bill, items, hotelName = 'Dinesh Hotel', footer = 'Thank You!
   receipt.innerHTML = `
     <div class="receipt">
       <div class="receipt-header">
-        <div class="receipt-hotel-name">${hotelName}</div>
+        <div style="text-align:center;margin-bottom:6px;">
+  <img src="/images/logo.png" 
+       alt="Logo"
+       style="width:60px;height:60px;
+              object-fit:contain;"
+       onerror="this.style.display='none'">
+</div>
+<div class="receipt-hotel-name">${hotelName}</div>
+```
+
+---
+
+## 📋 Logo Size Recommendation
+
+| Where | Size |
+|-------|------|
+| Login page | 80x80 px |
+| Sidebar | 44x44 px |
+| Print receipt | 60x60 px |
+
+---
+
+## ✅ Best Logo Format
+```
+Format  → PNG
+Background → Transparent (best!)
+Size → 500x500 px minimum
+Color → Any color
+```
+
+---
+
+## 🎯 Quick Summary
+```
+Step 1 → Create logo on Canva (free)
+Step 2 → Download as PNG
+Step 3 → Upload to GitHub images folder
+Step 4 → Update index.html (login page)
+Step 5 → Update sidebar.js (all pages)
+Step 6 → Update app.js (print receipt)
+Step 7 → Commit all changes
+Step 8 → Wait 2 minutes → Vercel deploys
+Step 9 → Logo shows everywhere! ✅
+```
+
+---
+
+## 💡 Pro Tip for Selling to Customers
+```
+When selling to new customer:
+1. Ask them for their logo
+2. If no logo → create on Canva free
+3. Upload their logo to their GitHub
+4. Change hotel name everywhere
+5. Professional website ready! ✅
         <div class="receipt-tagline">Restaurant & Hotel</div>
       </div>
       <hr class="receipt-divider">
