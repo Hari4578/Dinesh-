@@ -23,11 +23,16 @@ function renderSidebar(activePage) {
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <div class="logo-icon">🍽️</div>
-          <div class="logo-text">
-            <h2>Dinesh Hotel</h2>
-            <span>Admin Panel</span>
-          </div>
+          <img src="/images/logo.png" 
+     alt="Logo"
+     style="width:44px;
+            height:44px;
+            object-fit:contain;
+            border-radius:10px;">
+<div class="logo-text">
+  <h2>Dinesh Hotel</h2>
+  <span>Admin Panel</span>
+</div>
         </div>
       </div>
 
