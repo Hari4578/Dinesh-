@@ -199,7 +199,7 @@ if (error) {
         <td><span class="mono font-bold" style="color:var(--saffron)">${bill.bill_number}</span></td>
         <td>${formatDate(bill.bill_date)}</td>
         <td class="mono">${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}</td>
-        <td>${bill.bill_items ? bill.bill_items.length : 0} items</td>
+        <td>${Array.isArray(bill.bill_items) ? bill.bill_items.length : 0} items</td>
         <td class="text-right mono font-bold">${formatCurrency(bill.total)}</td>
         <td class="text-right"><span class="text-success mono">+${formatCurrency(bill.total_profit)}</span></td>
         <td>
