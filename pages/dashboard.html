@@ -157,11 +157,7 @@ console.error(e);
 async function loadRecentBills() {
 const tbody = document.getElementById('recent-bills-body');
 try {
-const { data: bills, error } = await db.from('bills').select('*');
-
-if (error) {
-console.error(error);
-}
+const bills = await Bills.getAll();
 const recent = bills.slice(0, 10);
 
 if (recent.length === 0) {  
