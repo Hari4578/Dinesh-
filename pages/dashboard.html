@@ -179,7 +179,10 @@
 async function loadRecentBills() {
   const tbody = document.getElementById('recent-bills-body');
   try {
-    const { data: bills, error } = await db.from('bills').select('*');
+    const { data: bills, error } = await db
+  .from('bills')
+  .select('*')
+  .order('created_at', { ascending: false });
 
 if (error) {
   console.error(error);
