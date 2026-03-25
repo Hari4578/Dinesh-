@@ -173,21 +173,34 @@
   })();
 
   async function loadItems() {
-    const tbody = document.getElementById('menu-table-body');
-    tbody.innerHTML = `<tr><td colspan="5">
-      <div class="loading-spinner"></div></td></tr>`;
-    try {
-      allItems = await Menu.getAll();
-      updateStats();
-      renderTable();
-    } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="5" 
-        style="text-align:center;color:var(--danger);">
-        Failed to load: ${e.message}</td></tr>`;
-      Toast.error('Failed to load menu: ' + e.message);
-    }
-  }
+  const tbody = document.getElementById('menu-table-body');
 
+  tbody.innerHTML = `<tr><td colspan="5">
+    <div class="loading-spinner"></div></td></tr>`;
+
+  try {
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+
+    allItems = data || [];
+
+    updateStats();
+    renderTable();
+
+  } catch (e) {
+    console.error("Menu load error:", e);
+
+    tbody.innerHTML = `<tr><td colspan="5" 
+      style="text-align:center;color:var(--danger);">
+      Failed to load: ${e.message}</td></tr>`;
+
+    Toast.error('Failed to load menu: ' + e.message);
+  }
+  }
   function updateStats() {
     document.getElementById('stat-total').textContent = allItems.length;
     document.getElementById('stat-available').textContent = 
