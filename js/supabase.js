@@ -134,7 +134,6 @@ const Bills = {
     const user = await Auth.getUser();
     const billNumber = await this.generateBillNumber();
     const total = items.reduce((s, i) => s + i.line_total, 0);
-    const totalProfit = items.reduce((s, i) => s + i.line_profit, 0);
     const now = new Date();
 
     const { data: bill, error: billErr } = await db
@@ -145,7 +144,6 @@ const Bills = {
         bill_time: now.toTimeString().slice(0, 8),
         subtotal: total,
         total: total,
-        total_profit: totalProfit,
         created_by: user.id
       })
       .select()
@@ -159,9 +157,7 @@ const Bills = {
       item_name: i.item_name,
       quantity: i.quantity,
       selling_price: i.selling_price,
-      cost_price: i.cost_price,
-      line_total: i.line_total,
-      line_profit: i.line_profit
+      line_total: i.line_total
     }));
 
     const { error: itemsErr } = await db
@@ -257,7 +253,7 @@ const Reports = {
   async getSummary(from, to) {
     const { data, error } = await db
       .from('bills')
-      .select('total, total_profit, bill_date')
+      .select('total,  bill_date')
       .gte('bill_date', from)
       .lte('bill_date', to);
     if (error) throw error;
@@ -265,7 +261,6 @@ const Reports = {
     const totalSales = bills.reduce((s, b) => s + Number(b.total), 0);
     return {
       totalSales,
-      totalProfit,
       billCount: bills.length,
       bills
     };
