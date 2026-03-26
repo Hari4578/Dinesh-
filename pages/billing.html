@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Billing — Dinesh Hotel</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <div id="toast-container"></div>
 <div id="print-receipt"></div>
-
 <div class="admin-layout">
   <div id="sidebar-container"></div>
-
   <div class="main-content">
     <div class="top-bar">
       <div class="top-bar-left">
@@ -27,19 +24,14 @@
         <span class="current-time" id="current-time"></span>
       </div>
     </div>
-
     <div class="page-content">
       <div class="billing-layout">
-
-        <!-- LEFT: Menu Panel -->
         <div class="menu-panel">
-          <!-- Search -->
           <div class="menu-search-bar mb-3">
             <span class="search-icon">🔍</span>
-            <input type="text" id="menu-search" placeholder="Search menu items..." autocomplete="off">
+            <input type="text" id="menu-search" 
+              placeholder="Search menu items..." autocomplete="off">
           </div>
-
-          <!-- Category Tabs -->
           <div class="category-tabs" id="category-tabs">
             <button class="cat-tab active" data-cat="All">All</button>
             <button class="cat-tab" data-cat="Breakfast">Breakfast</button>
@@ -47,46 +39,39 @@
             <button class="cat-tab" data-cat="Tiffin">Tiffin</button>
             <button class="cat-tab" data-cat="Drinks">Drinks</button>
             <button class="cat-tab" data-cat="Snacks">Snacks</button>
-            <button class="cat-tab" data-cat="Snacks">Startus</button>
           </div>
-
-          <!-- Menu Grid -->
           <div class="menu-grid" id="menu-grid">
-            <div class="loading-spinner"></div>
+            <p style="padding:20px;color:var(--text-light);">
+              Loading menu...
+            </p>
           </div>
         </div>
-
-        <!-- RIGHT: Bill Panel -->
         <div class="bill-panel">
           <div class="card">
             <div class="card-header">
               <h3>🧾 Current Bill</h3>
-              <div class="bill-no" id="current-bill-no">Generating...</div>
+              <div class="bill-no" id="current-bill-no">---</div>
             </div>
-
             <div id="cart-container">
               <div class="cart-empty">
                 <div class="empty-icon">🛒</div>
-                <p>Tap items from the menu<br>to add them here</p>
+                <p>Tap items to add here</p>
               </div>
             </div>
-
-            <div class="bill-total-section" id="bill-total" style="display:none;">
-              <div class="total-row">
-                <span>Sub Total</span>
-                <span class="mono" id="subtotal">₹0.00</span>
-              </div>
+            <div class="bill-total-section" 
+                 id="bill-total" style="display:none;">
               <div class="total-row grand">
                 <span>GRAND TOTAL</span>
                 <span class="amount" id="grand-total">₹0.00</span>
               </div>
             </div>
-
             <div class="bill-actions">
-              <button id="save-print-btn" class="btn btn-success btn-lg" disabled>
+              <button id="save-print-btn" 
+                class="btn btn-success btn-lg" disabled>
                 💾 Save & Print Bill
               </button>
-              <button id="save-only-btn" class="btn btn-primary" disabled>
+              <button id="save-only-btn" 
+                class="btn btn-primary" disabled>
                 ✅ Save Bill Only
               </button>
               <button id="clear-btn" class="btn btn-ghost">
@@ -95,7 +80,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -106,90 +90,98 @@
 <script src="../js/app.js"></script>
 <script src="../js/sidebar.js"></script>
 <script>
-  let allMenuItems = [];
-  let cart = []; // { item_id, item_name, quantity, selling_price, cost_price, line_total, line_profit }
-  let currentBillNo = '';
-  let activeCategory = 'All';
-  let hotelName = 'Dinesh Hotel';
-  let printFooter = 'Thank You! Visit Again';
+let allMenuItems = [];
+let cart = [];
+let currentBillNo = '';
+let activeCategory = 'All';
+let hotelName = 'Dinesh Hotel';
+let printFooter = 'Thank You! Visit Again';
 
-  (async () => {
-    const user = await Auth.requireAuth();
-    if (!user) return;
-    injectSidebar('billing');
-    initSidebar();
-    
-    // Load settings
-    try {
-      hotelName = await Settings.get('hotel_name') || 'Dinesh Hotel';
-      printFooter = await Settings.get('print_footer') || 'Thank You! Visit Again';
-    } catch(e) {}
-
-    // Generate bill number
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await Auth.requireAuth();
+  if (!user) return;
+  injectSidebar('billing');
+  try {
+    hotelName = await Settings.get('hotel_name') || 'Dinesh Hotel';
+    printFooter = await Settings.get('print_footer') || 
+      'Thank You! Visit Again';
+  } catch(e) {}
+  try {
     currentBillNo = await Bills.generateBillNumber();
-    document.getElementById('current-bill-no').textContent = currentBillNo;
-
-    // Load menu
-    await loadMenu();
-  })();
-
-  // ── Load Menu Items ──
-  async function loadMenu() {
-    const grid = document.getElementById('menu-grid');
-    try {
-      allMenuItems = await Menu.getAvailable();
-      renderMenu();
-    } catch (e) {
-      grid.innerHTML = `<p style="color:var(--danger);font-size:.85rem;">Failed to load menu.</p>`;
-    }
+    document.getElementById('current-bill-no').textContent = 
+      currentBillNo;
+  } catch(e) {
+    document.getElementById('current-bill-no').textContent = 'BILL001';
   }
+  await loadMenu();
+});
 
-  function renderMenu() {
-    const grid = document.getElementById('menu-grid');
-    const searchVal = document.getElementById('menu-search').value.toLowerCase();
-
-    let items = allMenuItems.filter(item => {
-      const matchCat = activeCategory === 'All' || item.category === activeCategory;
-      const matchSearch = !searchVal || item.name.toLowerCase().includes(searchVal);
-      return matchCat && matchSearch;
-    });
-
-    if (items.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);">No items found</div>`;
+async function loadMenu() {
+  const grid = document.getElementById('menu-grid');
+  try {
+    allMenuItems = await Menu.getAvailable();
+    if (allMenuItems.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;
+        text-align:center;padding:40px;color:var(--text-light);">
+        No items. <a href="/pages/menu.html" 
+        style="color:var(--saffron)">Add items</a>
+      </div>`;
       return;
     }
-
-    grid.innerHTML = items.map(item => {
-      const inCart = cart.find(c => c.item_id === item.id);
-      return `
-        <button class="menu-item-btn ${inCart ? 'in-cart' : ''}" data-id="${item.id}" onclick="addToCart('${item.id}')">
-          ${inCart ? `<span class="item-in-cart-badge">${inCart.quantity}</span>` : ''}
-          <div class="menu-item-name">${item.name}</div>
-          <div class="menu-item-price">₹${Number(item.selling_price).toFixed(0)}</div>
-          <div class="menu-item-cat">${item.category}</div>
-        </button>
-      `;
-    }).join('');
-  }
-
-  // ── Category Filter ──
-  document.getElementById('category-tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.cat-tab');
-    if (!tab) return;
-    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeCategory = tab.dataset.cat;
     renderMenu();
+  } catch(e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;
+      padding:20px;color:red;">Error: ${e.message}</div>`;
+  }
+}
+
+function renderMenu() {
+  const grid = document.getElementById('menu-grid');
+  const searchVal = document.getElementById('menu-search')
+    .value.toLowerCase();
+  let items = allMenuItems.filter(item => {
+    const matchCat = activeCategory === 'All' || 
+      item.category === activeCategory;
+    const matchSearch = !searchVal || 
+      item.name.toLowerCase().includes(searchVal);
+    return matchCat && matchSearch;
   });
+  if (items.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;
+      text-align:center;padding:20px;color:var(--text-light);">
+      No items found</div>`;
+    return;
+  }
+  grid.innerHTML = items.map(item => {
+    const inCart = cart.find(c => c.item_id === item.id);
+    return `<button class="menu-item-btn ${inCart ? 'in-cart' : ''}" 
+      onclick="addToCart('${item.id}')">
+      ${inCart ? `<span class="item-in-cart-badge">
+        ${inCart.quantity}</span>` : ''}
+      <div class="menu-item-name">${item.name}</div>
+      <div class="menu-item-price">
+        ₹${Number(item.selling_price).toFixed(0)}
+      </div>
+      <div class="menu-item-cat">${item.category}</div>
+    </button>`;
+  }).join('');
+}
 
-  // ── Search ──
-  document.getElementById('menu-search').addEventListener('input', renderMenu);
+document.getElementById('category-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab');
+  if (!tab) return;
+  document.querySelectorAll('.cat-tab')
+    .forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  activeCategory = tab.dataset.cat;
+  renderMenu();
+});
 
-  // ── Add to Cart ──
-  function addToCart(itemId) {
+document.getElementById('menu-search').addEventListener('input', renderMenu);
+
+function addToCart(itemId) {
   const item = allMenuItems.find(i => i.id === itemId);
   if (!item) return;
-
   const existing = cart.find(c => c.item_id === itemId);
   if (existing) {
     existing.quantity++;
@@ -200,132 +192,121 @@
       item_name: item.name,
       quantity: 1,
       selling_price: Number(item.selling_price),
+      cost_price: 0,
       line_total: Number(item.selling_price),
+      line_profit: 0
     });
   }
-
   renderCart();
   renderMenu();
+}
+
+function adjustQty(itemId, delta) {
+  const idx = cart.findIndex(c => c.item_id === itemId);
+  if (idx === -1) return;
+  cart[idx].quantity += delta;
+  if (cart[idx].quantity <= 0) {
+    cart.splice(idx, 1);
+  } else {
+    cart[idx].line_total = 
+      cart[idx].selling_price * cart[idx].quantity;
   }
+  renderCart();
+  renderMenu();
+}
 
-  // ── Adjust Quantity ──
-  function adjustQty(itemId, delta) {
-    const idx = cart.findIndex(c => c.item_id === itemId);
-    if (idx === -1) return;
+function removeFromCart(itemId) {
+  cart = cart.filter(c => c.item_id !== itemId);
+  renderCart();
+  renderMenu();
+}
 
-    cart[idx].quantity += delta;
-
-    if (cart[idx].quantity <= 0) {
-      cart.splice(idx, 1);
-    } else {
-      cart[idx].line_total = cart[idx].selling_price * cart[idx].quantity;
-    }
-
-    renderCart();
-    renderMenu();
+function renderCart() {
+  const container = document.getElementById('cart-container');
+  const totalSection = document.getElementById('bill-total');
+  const savePrintBtn = document.getElementById('save-print-btn');
+  const saveOnlyBtn = document.getElementById('save-only-btn');
+  if (cart.length === 0) {
+    container.innerHTML = `<div class="cart-empty">
+      <div class="empty-icon">🛒</div>
+      <p>Tap items to add here</p>
+    </div>`;
+    totalSection.style.display = 'none';
+    savePrintBtn.disabled = true;
+    saveOnlyBtn.disabled = true;
+    return;
   }
-
-  function removeFromCart(itemId) {
-    cart = cart.filter(c => c.item_id !== itemId);
-    renderCart();
-    renderMenu();
-  }
-
-  // ── Render Cart ──
-  function renderCart() {
-    const container = document.getElementById('cart-container');
-    const totalSection = document.getElementById('bill-total');
-    const savePrintBtn = document.getElementById('save-print-btn');
-    const saveOnlyBtn = document.getElementById('save-only-btn');
-
-    if (cart.length === 0) {
-      container.innerHTML = `
-        <div class="cart-empty">
-          <div class="empty-icon">🛒</div>
-          <p>Tap items from the menu<br>to add them here</p>
+  const total = cart.reduce((s, i) => s + i.line_total, 0);
+  container.innerHTML = `<div class="cart-items">
+    ${cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-name">${item.item_name}</div>
+        <div class="qty-controls">
+          <button class="qty-btn" 
+            onclick="adjustQty('${item.item_id}',-1)">−</button>
+          <span class="qty-display">${item.quantity}</span>
+          <button class="qty-btn" 
+            onclick="adjustQty('${item.item_id}',1)">+</button>
         </div>
-      `;
-      totalSection.style.display = 'none';
-      savePrintBtn.disabled = true;
-      saveOnlyBtn.disabled = true;
-      return;
-    }
+        <div class="cart-item-total">
+          ₹${item.line_total.toFixed(0)}
+        </div>
+        <button class="remove-btn" 
+          onclick="removeFromCart('${item.item_id}')">✕</button>
+      </div>`).join('')}
+  </div>`;
+  document.getElementById('grand-total').textContent = 
+    formatCurrency(total);
+  totalSection.style.display = 'block';
+  savePrintBtn.disabled = false;
+  saveOnlyBtn.disabled = false;
+}
 
-    const subtotal = cart.reduce((s, i) => s + i.line_total, 0);
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (cart.length === 0) return;
+  if (!confirm('Clear all items?')) return;
+  cart = [];
+  renderCart();
+  renderMenu();
+});
 
-    container.innerHTML = `
-      <div class="cart-items">
-        ${cart.map(item => `
-          <div class="cart-item">
-            <div class="cart-item-name">${item.item_name}</div>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="adjustQty('${item.item_id}', -1)">−</button>
-              <span class="qty-display">${item.quantity}</span>
-              <button class="qty-btn" onclick="adjustQty('${item.item_id}', 1)">+</button>
-            </div>
-            <div class="cart-item-total">₹${item.line_total.toFixed(0)}</div>
-            <button class="remove-btn" onclick="removeFromCart('${item.item_id}')" title="Remove">✕</button>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-    document.getElementById('grand-total').textContent = formatCurrency(subtotal);
-
-    totalSection.style.display = 'block';
-    savePrintBtn.disabled = false;
-    saveOnlyBtn.disabled = false;
-  }
-
-  // ── Clear Cart ──
-  document.getElementById('clear-btn').addEventListener('click', () => {
-    if (cart.length === 0) return;
-    if (!confirm('Clear all items from cart?')) return;
+async function saveBill(andPrint = false) {
+  if (cart.length === 0) { Toast.error('Add items first'); return; }
+  const btn = andPrint
+    ? document.getElementById('save-print-btn')
+    : document.getElementById('save-only-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Saving...';
+  try {
+    const bill = await Bills.create(
+      { bill_number: currentBillNo }, cart
+    );
+    Toast.success(`Bill ${bill.bill_number} saved!`);
+    if (andPrint) printBill(bill, cart, hotelName, printFooter);
     cart = [];
+    currentBillNo = await Bills.generateBillNumber();
+    document.getElementById('current-bill-no').textContent = 
+      currentBillNo;
     renderCart();
     renderMenu();
-  });
-
-  // ── Save Bill ──
-  async function saveBill(andPrint = false) {
-    if (cart.length === 0) {
-      Toast.error('Add items to cart before saving');
-      return;
-    }
-
-    const btn = andPrint ? document.getElementById('save-print-btn') : document.getElementById('save-only-btn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Saving...';
-
-    try {
-      const bill = await Bills.create({ bill_number: currentBillNo }, cart);
-
-      Toast.success(`Bill ${bill.bill_number} saved successfully!`);
-
-      if (andPrint) {
-        printBill(bill, cart, hotelName, printFooter);
-      }
-
-      // Reset for next bill
-      cart = [];
-      currentBillNo = await Bills.generateBillNumber();
-      document.getElementById('current-bill-no').textContent = currentBillNo;
-      renderCart();
-      renderMenu();
-
-    } catch (e) {
-      Toast.error('Failed to save bill: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = andPrint ? '💾 Save & Print Bill' : '✅ Save Bill Only';
-      document.getElementById('save-print-btn').disabled = cart.length === 0;
-      document.getElementById('save-only-btn').disabled = cart.length === 0;
-    }
+  } catch(e) {
+    Toast.error('Failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = andPrint 
+      ? '💾 Save & Print Bill' 
+      : '✅ Save Bill Only';
+    document.getElementById('save-print-btn').disabled = 
+      cart.length === 0;
+    document.getElementById('save-only-btn').disabled = 
+      cart.length === 0;
   }
+}
 
-  document.getElementById('save-print-btn').addEventListener('click', () => saveBill(true));
-  document.getElementById('save-only-btn').addEventListener('click', () => saveBill(false));
+document.getElementById('save-print-btn')
+  .addEventListener('click', () => saveBill(true));
+document.getElementById('save-only-btn')
+  .addEventListener('click', () => saveBill(false));
 </script>
 </body>
 </html>
