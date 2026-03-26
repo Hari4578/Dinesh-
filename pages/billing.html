@@ -5,10 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Billing — Dinesh Hotel</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Print Receipt Styles ── */
+    #print-receipt { display: none; }
+
+    @media print {
+      body > *                { display: none !important; }
+      #print-receipt          { display: block !important; }
+
+      .receipt                { width: 80mm; margin: 0 auto;
+                                font-family: 'Courier New', monospace;
+                                font-size: 12px; color: #000; }
+      .receipt-header         { text-align: center; margin-bottom: 8px; }
+      .receipt-logo           { width: 64px; height: 64px;
+                                object-fit: contain; margin-bottom: 4px; }
+      .receipt-hotel-name     { font-size: 18px; font-weight: bold;
+                                letter-spacing: 1px; margin-bottom: 2px; }
+      .receipt-sub            { font-size: 11px; color: #555;
+                                margin-bottom: 4px; }
+      .receipt-divider        { border-top: 1px dashed #000;
+                                margin: 6px 0; }
+      .receipt-meta           { font-size: 11px; margin: 2px 0; }
+      .receipt-items-header   { display: flex; justify-content: space-between;
+                                font-weight: bold; font-size: 11px;
+                                margin: 4px 0; }
+      .receipt-item           { display: flex; justify-content: space-between;
+                                font-size: 12px; margin: 3px 0; }
+      .receipt-item-name      { flex: 2; }
+      .receipt-item-qty,
+      .receipt-item-rate,
+      .receipt-item-amt       { flex: 1; text-align: right; }
+      .receipt-total          { display: flex; justify-content: space-between;
+                                font-weight: bold; font-size: 14px;
+                                margin: 6px 0; }
+      .receipt-footer         { text-align: center; font-size: 11px;
+                                margin-top: 10px; font-style: italic; }
+    }
+  </style>
 </head>
 <body>
 <div id="toast-container"></div>
 <div id="print-receipt"></div>
+
 <div class="admin-layout">
   <div id="sidebar-container"></div>
   <div class="main-content">
@@ -24,19 +62,23 @@
         <span class="current-time" id="current-time"></span>
       </div>
     </div>
+
     <div class="page-content">
       <div class="billing-layout">
+
+        <!-- Menu Panel -->
         <div class="menu-panel">
           <div class="menu-search-bar mb-3">
             <span class="search-icon">🔍</span>
-            <input type="text" id="menu-search" 
+            <input type="text" id="menu-search"
               placeholder="Search menu items..." autocomplete="off">
           </div>
           <div class="category-tabs" id="category-tabs">
+            <!-- ✅ FIX: data-cat values match exact DB category names -->
             <button class="cat-tab active" data-cat="All">All</button>
             <button class="cat-tab" data-cat="Breakfast">Breakfast</button>
-            <button class="cat-tab" data-cat="Meals">Lunch</button>
-            <button class="cat-tab" data-cat="Tiffin">startus</button>
+            <button class="cat-tab" data-cat="Meals">Meals</button>
+            <button class="cat-tab" data-cat="Tiffin">Tiffin</button>
             <button class="cat-tab" data-cat="Drinks">Drinks</button>
             <button class="cat-tab" data-cat="Snacks">Snacks</button>
           </div>
@@ -46,6 +88,8 @@
             </p>
           </div>
         </div>
+
+        <!-- Bill Panel -->
         <div class="bill-panel">
           <div class="card">
             <div class="card-header">
@@ -58,7 +102,7 @@
                 <p>Tap items to add here</p>
               </div>
             </div>
-            <div class="bill-total-section" 
+            <div class="bill-total-section"
                  id="bill-total" style="display:none;">
               <div class="total-row grand">
                 <span>GRAND TOTAL</span>
@@ -66,11 +110,11 @@
               </div>
             </div>
             <div class="bill-actions">
-              <button id="save-print-btn" 
+              <button id="save-print-btn"
                 class="btn btn-success btn-lg" disabled>
                 💾 Save & Print Bill
               </button>
-              <button id="save-only-btn" 
+              <button id="save-only-btn"
                 class="btn btn-primary" disabled>
                 ✅ Save Bill Only
               </button>
@@ -80,6 +124,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -90,95 +135,93 @@
 <script src="../js/app.js"></script>
 <script src="../js/sidebar.js"></script>
 <script>
-let allMenuItems = [];
-let cart = [];
+let allMenuItems  = [];
+let cart          = [];
 let currentBillNo = '';
 let activeCategory = 'All';
-let hotelName = 'Dinesh Hotel';
-let printFooter = 'Thank You! Visit Again';
+let hotelName     = 'Dinesh Hotel';
+let printFooter   = 'Thank You! Visit Again';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await Auth.requireAuth();
   if (!user) return;
   injectSidebar('billing');
+
   try {
-    hotelName = await Settings.get('hotel_name') || 'Dinesh Hotel';
-    printFooter = await Settings.get('print_footer') || 
-      'Thank You! Visit Again';
+    hotelName   = await Settings.get('hotel_name')   || 'Dinesh Hotel';
+    printFooter = await Settings.get('print_footer') || 'Thank You! Visit Again';
   } catch(e) {}
+
   try {
     currentBillNo = await Bills.generateBillNumber();
-    document.getElementById('current-bill-no').textContent = 
-      currentBillNo;
+    document.getElementById('current-bill-no').textContent = currentBillNo;
   } catch(e) {
     document.getElementById('current-bill-no').textContent = 'BILL001';
   }
+
   await loadMenu();
 });
 
+// ── Load Menu ──
 async function loadMenu() {
   const grid = document.getElementById('menu-grid');
   try {
     allMenuItems = await Menu.getAvailable();
     if (allMenuItems.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1;
-        text-align:center;padding:40px;color:var(--text-light);">
-        No items. <a href="/pages/menu.html" 
-        style="color:var(--saffron)">Add items</a>
-      </div>`;
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;
+        padding:40px;color:var(--text-light);">
+        No items. <a href="/pages/menu.html" style="color:var(--saffron)">
+        Add items</a></div>`;
       return;
     }
     renderMenu();
   } catch(e) {
-    grid.innerHTML = `<div style="grid-column:1/-1;
-      padding:20px;color:red;">Error: ${e.message}</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:20px;color:red;">
+      Error: ${e.message}</div>`;
   }
 }
 
+// ── Render Menu Grid ──
 function renderMenu() {
-  const grid = document.getElementById('menu-grid');
-  const searchVal = document.getElementById('menu-search')
-    .value.toLowerCase();
-  let items = allMenuItems.filter(item => {
-    const matchCat = activeCategory === 'All' || 
-      item.category === activeCategory;
-    const matchSearch = !searchVal || 
-      item.name.toLowerCase().includes(searchVal);
+  const grid      = document.getElementById('menu-grid');
+  const searchVal = document.getElementById('menu-search').value.toLowerCase();
+
+  const items = allMenuItems.filter(item => {
+    const matchCat    = activeCategory === 'All' || item.category === activeCategory;
+    const matchSearch = !searchVal || item.name.toLowerCase().includes(searchVal);
     return matchCat && matchSearch;
   });
+
   if (items.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1;
-      text-align:center;padding:20px;color:var(--text-light);">
-      No items found</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;
+      padding:20px;color:var(--text-light);">No items found</div>`;
     return;
   }
+
   grid.innerHTML = items.map(item => {
     const inCart = cart.find(c => c.item_id === item.id);
-    return `<button class="menu-item-btn ${inCart ? 'in-cart' : ''}" 
+    return `<button class="menu-item-btn ${inCart ? 'in-cart' : ''}"
       onclick="addToCart('${item.id}')">
-      ${inCart ? `<span class="item-in-cart-badge">
-        ${inCart.quantity}</span>` : ''}
+      ${inCart ? `<span class="item-in-cart-badge">${inCart.quantity}</span>` : ''}
       <div class="menu-item-name">${item.name}</div>
-      <div class="menu-item-price">
-        ₹${Number(item.selling_price).toFixed(0)}
-      </div>
+      <div class="menu-item-price">₹${Number(item.selling_price).toFixed(0)}</div>
       <div class="menu-item-cat">${item.category}</div>
     </button>`;
   }).join('');
 }
 
+// ── Category & Search ──
 document.getElementById('category-tabs').addEventListener('click', e => {
   const tab = e.target.closest('.cat-tab');
   if (!tab) return;
-  document.querySelectorAll('.cat-tab')
-    .forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
   activeCategory = tab.dataset.cat;
   renderMenu();
 });
-
 document.getElementById('menu-search').addEventListener('input', renderMenu);
 
+// ── Cart Functions ──
 function addToCart(itemId) {
   const item = allMenuItems.find(i => i.id === itemId);
   if (!item) return;
@@ -188,16 +231,14 @@ function addToCart(itemId) {
     existing.line_total = existing.selling_price * existing.quantity;
   } else {
     cart.push({
-      item_id: item.id,
-      item_name: item.name,
-      quantity: 1,
+      item_id:       item.id,
+      item_name:     item.name,
+      quantity:      1,
       selling_price: Number(item.selling_price),
-      line_total: Number(item.selling_price),
-      
+      line_total:    Number(item.selling_price)
     });
   }
-  renderCart();
-  renderMenu();
+  renderCart(); renderMenu();
 }
 
 function adjustQty(itemId, delta) {
@@ -207,105 +248,155 @@ function adjustQty(itemId, delta) {
   if (cart[idx].quantity <= 0) {
     cart.splice(idx, 1);
   } else {
-    cart[idx].line_total = 
-      cart[idx].selling_price * cart[idx].quantity;
+    cart[idx].line_total = cart[idx].selling_price * cart[idx].quantity;
   }
-  renderCart();
-  renderMenu();
+  renderCart(); renderMenu();
 }
 
 function removeFromCart(itemId) {
   cart = cart.filter(c => c.item_id !== itemId);
-  renderCart();
-  renderMenu();
+  renderCart(); renderMenu();
 }
 
 function renderCart() {
-  const container = document.getElementById('cart-container');
+  const container    = document.getElementById('cart-container');
   const totalSection = document.getElementById('bill-total');
   const savePrintBtn = document.getElementById('save-print-btn');
-  const saveOnlyBtn = document.getElementById('save-only-btn');
+  const saveOnlyBtn  = document.getElementById('save-only-btn');
+
   if (cart.length === 0) {
     container.innerHTML = `<div class="cart-empty">
-      <div class="empty-icon">🛒</div>
-      <p>Tap items to add here</p>
-    </div>`;
+      <div class="empty-icon">🛒</div><p>Tap items to add here</p></div>`;
     totalSection.style.display = 'none';
     savePrintBtn.disabled = true;
-    saveOnlyBtn.disabled = true;
+    saveOnlyBtn.disabled  = true;
     return;
   }
+
   const total = cart.reduce((s, i) => s + i.line_total, 0);
   container.innerHTML = `<div class="cart-items">
     ${cart.map(item => `
       <div class="cart-item">
         <div class="cart-item-name">${item.item_name}</div>
         <div class="qty-controls">
-          <button class="qty-btn" 
-            onclick="adjustQty('${item.item_id}',-1)">−</button>
+          <button class="qty-btn" onclick="adjustQty('${item.item_id}',-1)">−</button>
           <span class="qty-display">${item.quantity}</span>
-          <button class="qty-btn" 
-            onclick="adjustQty('${item.item_id}',1)">+</button>
+          <button class="qty-btn" onclick="adjustQty('${item.item_id}',1)">+</button>
         </div>
-        <div class="cart-item-total">
-          ₹${item.line_total.toFixed(0)}
-        </div>
-        <button class="remove-btn" 
-          onclick="removeFromCart('${item.item_id}')">✕</button>
+        <div class="cart-item-total">₹${item.line_total.toFixed(0)}</div>
+        <button class="remove-btn" onclick="removeFromCart('${item.item_id}')">✕</button>
       </div>`).join('')}
   </div>`;
-  document.getElementById('grand-total').textContent = 
-    formatCurrency(total);
+
+  document.getElementById('grand-total').textContent = formatCurrency(total);
   totalSection.style.display = 'block';
   savePrintBtn.disabled = false;
-  saveOnlyBtn.disabled = false;
+  saveOnlyBtn.disabled  = false;
 }
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   if (cart.length === 0) return;
   if (!confirm('Clear all items?')) return;
   cart = [];
-  renderCart();
-  renderMenu();
+  renderCart(); renderMenu();
 });
 
+// ── Print Bill with Logo + Hotel Name ──
+function doPrintBill(bill, items) {
+  const receipt = document.getElementById('print-receipt');
+  if (!receipt) return;
+
+  const date  = bill.bill_date ? formatDate(bill.bill_date) : formatDate(new Date().toISOString().slice(0,10));
+  const time  = bill.bill_time ? bill.bill_time.slice(0,5)  : new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const total = items.reduce((s, i) => s + Number(i.line_total), 0);
+
+  const itemsHtml = items.map(item => `
+    <div class="receipt-item">
+      <span class="receipt-item-name">${item.item_name}</span>
+      <span class="receipt-item-qty">${item.quantity}</span>
+      <span class="receipt-item-rate">${Number(item.selling_price).toFixed(0)}</span>
+      <span class="receipt-item-amt">${Number(item.line_total).toFixed(0)}</span>
+    </div>`).join('');
+
+  // ✅ Hotel logo + name prominently at top of receipt
+  receipt.innerHTML = `
+    <div class="receipt">
+      <div class="receipt-header">
+        <img src="/images/logo.png"
+             alt="${hotelName}"
+             class="receipt-logo"
+             onerror="this.style.display='none'">
+        <div class="receipt-hotel-name">${hotelName}</div>
+        <div class="receipt-sub">Restaurant &amp; Hotel</div>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-meta">Bill No : <strong>${bill.bill_number}</strong></div>
+      <div class="receipt-meta">Date    : ${date}</div>
+      <div class="receipt-meta">Time    : ${time}</div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-items-header">
+        <span style="flex:2">Item</span>
+        <span style="flex:1;text-align:right">Qty</span>
+        <span style="flex:1;text-align:right">Rate</span>
+        <span style="flex:1;text-align:right">Amt</span>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      ${itemsHtml}
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-total">
+        <span>TOTAL</span>
+        <span>₹${total.toFixed(2)}</span>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-footer">${printFooter}</div>
+    </div>
+  `;
+
+  setTimeout(() => window.print(), 300);
+}
+
+// ── Save Bill ──
 async function saveBill(andPrint = false) {
   if (cart.length === 0) { Toast.error('Add items first'); return; }
+
   const btn = andPrint
     ? document.getElementById('save-print-btn')
     : document.getElementById('save-only-btn');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = '⏳ Saving...';
+
   try {
-    const bill = await Bills.create(
-      { bill_number: currentBillNo }, cart
-    );
+    const bill = await Bills.create({ bill_number: currentBillNo }, cart);
     Toast.success(`Bill ${bill.bill_number} saved!`);
-    if (andPrint) printBill(bill, cart, hotelName, printFooter);
-    cart = [];
+    if (andPrint) doPrintBill(bill, cart);
+
+    cart          = [];
     currentBillNo = await Bills.generateBillNumber();
-    document.getElementById('current-bill-no').textContent = 
-      currentBillNo;
-    renderCart();
-    renderMenu();
+    document.getElementById('current-bill-no').textContent = currentBillNo;
+    renderCart(); renderMenu();
+
   } catch(e) {
     Toast.error('Failed: ' + e.message);
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = andPrint 
-      ? '💾 Save & Print Bill' 
-      : '✅ Save Bill Only';
-    document.getElementById('save-print-btn').disabled = 
-      cart.length === 0;
-    document.getElementById('save-only-btn').disabled = 
-      cart.length === 0;
+    btn.disabled  = false;
+    btn.innerHTML = andPrint ? '💾 Save & Print Bill' : '✅ Save Bill Only';
+    document.getElementById('save-print-btn').disabled = cart.length === 0;
+    document.getElementById('save-only-btn').disabled  = cart.length === 0;
   }
 }
 
-document.getElementById('save-print-btn')
-  .addEventListener('click', () => saveBill(true));
-document.getElementById('save-only-btn')
-  .addEventListener('click', () => saveBill(false));
+document.getElementById('save-print-btn').addEventListener('click', () => saveBill(true));
+document.getElementById('save-only-btn').addEventListener('click',  () => saveBill(false));
 </script>
 </body>
 </html>
