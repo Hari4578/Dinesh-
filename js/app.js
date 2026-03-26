@@ -89,8 +89,113 @@ const DateUtils = {
   }
 };
 
-// ── Confirm Dialog ──
-function confirmAction(message) { return confirm(message); }
+// ── Custom Confirm Dialog (replaces browser confirm) ──────────────────────
+// Usage: confirmAction('Delete this item?').then(ok => { if(ok) doIt(); });
+function confirmAction(message, title = 'Are you sure?', confirmText = 'Yes', cancelText = 'Cancel') {
+  return new Promise((resolve) => {
+    // Remove existing
+    const existing = document.getElementById('confirm-modal');
+    if (existing) existing.remove();
+
+    // Inject styles once
+    if (!document.getElementById('confirm-modal-style')) {
+      const style = document.createElement('style');
+      style.id = 'confirm-modal-style';
+      style.textContent = `
+        #confirm-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 99998;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .cm-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.45);
+          backdrop-filter: blur(4px);
+          animation: cmFade 0.2s ease;
+        }
+        .cm-box {
+          position: relative;
+          background: #fff;
+          border-radius: 18px;
+          padding: 32px 28px 26px;
+          width: 100%;
+          max-width: 300px;
+          text-align: center;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+          animation: cmSlide 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .cm-icon { font-size: 36px; margin-bottom: 12px; }
+        .cm-title {
+          font-size: 17px; font-weight: 700;
+          color: #1a1a2e; margin: 0 0 8px;
+        }
+        .cm-msg {
+          font-size: 13px; color: #777;
+          margin: 0 0 24px; line-height: 1.6;
+        }
+        .cm-actions { display: flex; gap: 10px; }
+        .cm-cancel {
+          flex: 1; padding: 11px 8px;
+          border: 2px solid #e8e8e8;
+          background: #f8f8f8; color: #555;
+          font-size: 13px; font-weight: 600;
+          border-radius: 10px; cursor: pointer;
+          transition: all 0.2s; font-family: inherit;
+        }
+        .cm-cancel:hover { background: #eee; border-color: #ccc; }
+        .cm-ok {
+          flex: 1; padding: 11px 8px;
+          border: none;
+          background: linear-gradient(135deg, #E8621A, #cf5516);
+          color: #fff; font-size: 13px; font-weight: 600;
+          border-radius: 10px; cursor: pointer;
+          transition: all 0.2s; font-family: inherit;
+          box-shadow: 0 4px 12px rgba(232,98,26,0.3);
+        }
+        .cm-ok:hover {
+          background: linear-gradient(135deg, #cf5516, #b84a12);
+          transform: translateY(-1px);
+        }
+        @keyframes cmFade  { from{opacity:0} to{opacity:1} }
+        @keyframes cmSlide {
+          from { transform: translateY(20px) scale(0.95); opacity:0; }
+          to   { transform: translateY(0)    scale(1);    opacity:1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'confirm-modal';
+    modal.innerHTML = `
+      <div class="cm-overlay" id="cm-overlay"></div>
+      <div class="cm-box">
+        <div class="cm-icon">⚠️</div>
+        <div class="cm-title">${title}</div>
+        <p class="cm-msg">${message}</p>
+        <div class="cm-actions">
+          <button class="cm-cancel" id="cm-cancel">${cancelText}</button>
+          <button class="cm-ok"     id="cm-ok">${confirmText}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const close = (result) => {
+      modal.remove();
+      resolve(result);
+    };
+
+    document.getElementById('cm-overlay').addEventListener('click', () => close(false));
+    document.getElementById('cm-cancel').addEventListener('click', () => close(false));
+    document.getElementById('cm-ok').addEventListener('click',     () => close(true));
+  });
+}
 
 // ── Show Loading ──
 function showLoading(containerId, message = 'Loading...') {
