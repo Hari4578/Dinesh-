@@ -13,7 +13,7 @@
       body > *                { display: none !important; }
       #print-receipt          { display: block !important; }
 
-      .receipt                { width: 60mm; margin: 0 auto;
+      .receipt                { width: 50mm; margin: 0 auto;
                                 font-family: 'Courier New', monospace;
                                 font-size: 12px; color: #000; }
       .receipt-header         { text-align: center; margin-bottom: 8px; }
@@ -322,8 +322,8 @@ function doPrintBill(bill, items) {
   receipt.innerHTML = `
     <div class="receipt">
       <div class="receipt-header">
-        <img src="images/logo.png"
-             alt="${Dinesh Hotel }"
+        <img src="/images/logo.png"
+             alt="${hotelName}"
              class="receipt-logo"
              onerror="this.style.display='none'">
         <div class="receipt-hotel-name">${hotelName}</div>
