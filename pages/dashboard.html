@@ -1,189 +1,161 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <title>Dashboard — Dinesh Hotel</title>  
-  <link rel="stylesheet" href="../css/style.css">  
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>  
-</head>  
-<body>  
-<div id="toast-container"></div>  
-<div id="print-receipt"></div>  <div class="admin-layout">  
-  <div id="sidebar-container"></div>    <div class="main-content">  
-    <div class="top-bar">  
-      <div class="top-bar-left">  
-        <button class="hamburger-btn" id="hamburger-btn">☰</button>  
-        <div>  
-          <div class="page-title">Dashboard</div>  
-          <div class="page-subtitle" id="today-date">Today's Overview</div>  
-        </div>  
-      </div>  
-      <div class="top-bar-right">  
-        <span class="current-time" id="current-time"></span>  
-        <a href="billing.html" class="btn btn-primary btn-sm">+ New Bill</a>  
-      </div>  
-    </div>  <div class="page-content">  
-  <!-- Today's Stats -->  
-  <div class="stats-grid" id="stats-grid">  
-    <div class="stat-card orange">  
-      <div class="stat-icon orange">💰</div>  
-      <div class="stat-value" id="today-sales">₹0</div>  
-      <div class="stat-label">Today's Sales</div>  
-    </div>  
-    <div class="stat-card green">  
-      <div class="stat-icon green">📈</div>  
-      <div class="stat-value" id="today-profit">₹0</div>  
-      <div class="stat-label">Today's Profit</div>  
-    </div>  
-    <div class="stat-card blue">  
-      <div class="stat-icon blue">🧾</div>  
-      <div class="stat-value" id="today-bills">0</div>  
-      <div class="stat-label">Bills Today</div>  
-    </div>  
-    <div class="stat-card purple">  
-      <div class="stat-icon purple">📅</div>  
-      <div class="stat-value" id="month-sales">₹0</div>  
-      <div class="stat-label">Month Sales</div>  
-    </div>  
-  </div>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test — Dinesh Hotel</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    .box { background: white; padding: 20px; border-radius: 10px; 
+           margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .success { color: green; font-weight: bold; }
+    .error { color: red; font-weight: bold; }
+    .loading { color: orange; }
+    h2 { margin: 0 0 10px; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 5px; 
+          font-size: 12px; overflow-x: auto; }
+    button { background: #E8670A; color: white; border: none; 
+             padding: 10px 20px; border-radius: 8px; 
+             font-size: 1rem; cursor: pointer; margin: 5px; }
+  </style>
+</head>
+<body>
 
-  <div class="grid-2 mb-4">  
-    <!-- Quick Actions -->  
-    <div class="card">  
-      <div class="card-header"><h3>⚡ Quick Actions</h3></div>  
-      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">  
-        <a href="billing.html" class="btn btn-primary">🧾 New Bill</a>  
-        <a href="history.html" class="btn btn-secondary">📋 View Bills</a>  
-        <a href="menu.html" class="btn btn-secondary">🍛 Menu Items</a>  
-        <a href="reports.html" class="btn btn-secondary">📈 Reports</a>  
-      </div>  
-    </div>  
+<h1>🔍 Supabase Connection Test</h1>
 
-    <!-- Month Summary -->  
-    <div class="card">  
-      <div class="card-header"><h3>📅 This Month</h3></div>  
-      <div class="card-body">  
-        <div class="total-row">  
-          <span>Total Sales</span>  
-          <span class="mono font-bold" id="m-sales">₹0.00</span>  
-        </div>  
-        <div class="total-row">  
-          <span>Total Profit</span>  
-          <span class="mono font-bold text-success" id="m-profit">₹0.00</span>  
-        </div>  
-        <div class="total-row">  
-          <span>Total Bills</span>  
-          <span class="mono font-bold" id="m-bills">0</span>  
-        </div>  
-        <div class="total-row">  
-          <span>Avg Bill Value</span>  
-          <span class="mono font-bold" id="m-avg">₹0.00</span>  
-        </div>  
-      </div>  
-    </div>  
-  </div>  
-
-  <!-- Recent Bills -->  
-  <div class="card">  
-    <div class="card-header">  
-      <h3>🕐 Recent Bills</h3>  
-      <a href="history.html" class="btn btn-sm btn-ghost">View All →</a>  
-    </div>  
-    <div class="table-wrapper">  
-      <table>  
-        <thead>  
-          <tr>  
-            <th>Bill No</th>  
-            <th>Date</th>  
-            <th>Time</th>  
-            <th>Items</th>  
-            <th class="text-right">Total</th>  
-            <th>Action</th>  
-          </tr>  
-        </thead>  
-        <tbody id="recent-bills-body">  
-          <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>  
-        </tbody>  
-      </table>  
-    </div>  
-  </div>  
+<div class="box">
+  <h2>1. Supabase Library</h2>
+  <div id="lib-status" class="loading">Checking...</div>
 </div>
 
-  </div>  
-</div>  
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>  
-<script src="../js/supabase.js"></script>  
-<script src="../js/app.js"></script>  
-<script src="../js/sidebar.js"></script>  
-<script>  
-(async () => {  
-  const user = await Auth.requireAuth();  
-  if (!user) return;  injectSidebar('dashboard');
-initSidebar();
+<div class="box">
+  <h2>2. Database Connection</h2>
+  <div id="db-status" class="loading">Checking...</div>
+</div>
 
-// Set today date
-document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+<div class="box">
+  <h2>3. Menu Items</h2>
+  <div id="menu-status" class="loading">Checking...</div>
+  <pre id="menu-data"></pre>
+</div>
 
-// Load stats
-await loadStats();
-await loadRecentBills();
-})();
+<div class="box">
+  <h2>4. Bills</h2>
+  <div id="bills-status" class="loading">Checking...</div>
+  <pre id="bills-data"></pre>
+</div>
 
-async function loadStats() {
-try {
-const today = DateUtils.today();
-const monthStart = DateUtils.monthStart();
+<div class="box">
+  <h2>5. Auth Session</h2>
+  <div id="auth-status" class="loading">Checking...</div>
+</div>
 
-const [todayData, monthData] = await Promise.all([  
-  Reports.getSummary(today, today),  
-  Reports.getSummary(monthStart, today)  
-]);  
+<div class="box">
+  <button onclick="runAllTests()">🔄 Run Tests Again</button>
+  <button onclick="window.location.href='/pages/billing.html'">
+    Go to Billing
+  </button>
+</div>
 
-document.getElementById('today-sales').textContent = formatCurrency(todayData.totalSales);  
-document.getElementById('today-bills').textContent = todayData.billCount;  
-document.getElementById('month-sales').textContent = formatCurrency(monthData.totalSales);  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-document.getElementById('m-sales').textContent = formatCurrency(monthData.totalSales);  
-document.getElementById('m-bills').textContent = monthData.billCount;  
-document.getElementById('m-avg').textContent = monthData.billCount > 0  
-  ? formatCurrency(monthData.totalSales / monthData.billCount)  
-  : '₹0.00';
+<script>
+const SUPABASE_URL = 'https://gtujlykdrfwqbdschsya.supabase.co';
+const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
 
-} catch (e) {
-console.error(e);
+async function runAllTests() {
+  // Test 1 - Library
+  const libEl = document.getElementById('lib-status');
+  if (window.supabase && window.supabase.createClient) {
+    libEl.className = 'success';
+    libEl.textContent = '✅ Supabase library loaded correctly!';
+  } else {
+    libEl.className = 'error';
+    libEl.textContent = '❌ Supabase library NOT loaded!';
+    return;
+  }
+
+  // Test 2 - Connection
+  const dbEl = document.getElementById('db-status');
+  let client;
+  try {
+    client = window.supabase.createClient(
+      SUPABASE_URL, SUPABASE_ANON_KEY
+    );
+    dbEl.className = 'success';
+    dbEl.textContent = '✅ Connected to Supabase: ' + SUPABASE_URL;
+  } catch(e) {
+    dbEl.className = 'error';
+    dbEl.textContent = '❌ Connection failed: ' + e.message;
+    return;
+  }
+
+  // Test 3 - Menu Items
+  const menuEl = document.getElementById('menu-status');
+  const menuData = document.getElementById('menu-data');
+  try {
+    const { data, error } = await client
+      .from('menu_items')
+      .select('*');
+    if (error) {
+      menuEl.className = 'error';
+      menuEl.textContent = '❌ Menu Error: ' + error.message;
+      menuData.textContent = JSON.stringify(error, null, 2);
+    } else {
+      menuEl.className = 'success';
+      menuEl.textContent = '✅ Menu items found: ' + data.length;
+      menuData.textContent = JSON.stringify(
+        data.slice(0,3), null, 2
+      );
+    }
+  } catch(e) {
+    menuEl.className = 'error';
+    menuEl.textContent = '❌ Exception: ' + e.message;
+  }
+
+  // Test 4 - Bills
+  const billsEl = document.getElementById('bills-status');
+  const billsData = document.getElementById('bills-data');
+  try {
+    const { data, error } = await client
+      .from('bills')
+      .select('*');
+    if (error) {
+      billsEl.className = 'error';
+      billsEl.textContent = '❌ Bills Error: ' + error.message;
+      billsData.textContent = JSON.stringify(error, null, 2);
+    } else {
+      billsEl.className = 'success';
+      billsEl.textContent = '✅ Bills found: ' + data.length;
+      billsData.textContent = JSON.stringify(
+        data.slice(0,2), null, 2
+      );
+    }
+  } catch(e) {
+    billsEl.className = 'error';
+    billsEl.textContent = '❌ Exception: ' + e.message;
+  }
+
+  // Test 5 - Auth
+  const authEl = document.getElementById('auth-status');
+  try {
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+      authEl.className = 'success';
+      authEl.textContent = '✅ Logged in as: ' + session.user.email;
+    } else {
+      authEl.className = 'error';
+      authEl.textContent = '❌ Not logged in! Session expired.';
+    }
+  } catch(e) {
+    authEl.className = 'error';
+    authEl.textContent = '❌ Auth error: ' + e.message;
+  }
 }
-}
 
-async function loadRecentBills() {
-const tbody = document.getElementById('recent-bills-body');
-try {
-const bills = await Bills.getAll();
-const recent = bills.slice(0, 10);
-
-if (recent.length === 0) {  
-  tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🧾</div><p>No bills yet. <a href="billing.html" style="color:var(--saffron)">Create your first bill</a></p></div></td></tr>`;  
-  return;  
-}  
-
-tbody.innerHTML = recent.map(bill => `  
-  <tr>  
-    <td><span class="mono font-bold" style="color:var(--saffron)">${bill.bill_number}</span></td>  
-    <td>${formatDate(bill.bill_date)}</td>  
-    <td class="mono">${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}</td>  
-    <td>${bill.bill_items ? bill.bill_items.length : 0} items</td>  
-    <td class="text-right mono font-bold">${formatCurrency(bill.total)}</td>  
-    <td class="text-right"><span class="text-success mono">+${formatCurrency(bill.total_profit)}</span></td>  
-    <td>  
-      <a href="history.html#${bill.id}" class="btn btn-sm btn-ghost">View</a>  
-    </td>  
-  </tr>  
-`).join('');
-
-} catch (e) {
-tbody.innerHTML = <tr><td colspan="7" style="text-align:center;color:var(--danger);">Failed to load bills.</td></tr>;
-}
-}
+// Run on load
+window.addEventListener('load', runAllTests);
 </script>
 
-</body>  
-</html> which line to replace 
+</body>
+</html>
