@@ -7,7 +7,6 @@ const Toast = {
   show(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -15,14 +14,12 @@ const Toast = {
       <span class="toast-icon">${icons[type] || icons.info}</span>
       <span class="toast-message">${message}</span>
     `;
-
     container.appendChild(toast);
     setTimeout(() => {
       toast.classList.add('fade-out');
       toast.addEventListener('animationend', () => toast.remove());
     }, duration);
   },
-
   success(msg) { this.show(msg, 'success'); },
   error(msg)   { this.show(msg, 'error');   },
   info(msg)    { this.show(msg, 'info');    }
@@ -33,14 +30,11 @@ function initSidebar() {
   const hamburger = document.getElementById('hamburger-btn');
   const sidebar   = document.getElementById('sidebar');
   const overlay   = document.getElementById('sidebar-overlay');
-
   if (!hamburger || !sidebar) return;
-
   hamburger.addEventListener('click', () => {
     sidebar.classList.toggle('open');
     overlay?.classList.toggle('show');
   });
-
   overlay?.addEventListener('click', () => {
     sidebar.classList.remove('open');
     overlay.classList.remove('show');
@@ -52,8 +46,7 @@ function initClock() {
   const el = document.getElementById('current-time');
   if (!el) return;
   const update = () => {
-    const now = new Date();
-    el.textContent = now.toLocaleTimeString('en-IN', {
+    el.textContent = new Date().toLocaleTimeString('en-IN', {
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
   };
@@ -97,9 +90,7 @@ const DateUtils = {
 };
 
 // ── Confirm Dialog ──
-function confirmAction(message) {
-  return confirm(message);
-}
+function confirmAction(message) { return confirm(message); }
 
 // ── Show Loading ──
 function showLoading(containerId, message = 'Loading...') {
@@ -107,24 +98,23 @@ function showLoading(containerId, message = 'Loading...') {
   if (el) el.innerHTML = `
     <div class="loading-spinner"></div>
     <p style="text-align:center;color:var(--text-light);
-              font-size:.85rem;margin-top:8px;">${message}</p>
-  `;
+      font-size:.85rem;margin-top:8px;">${message}</p>`;
 }
 
-// ── Set Active Nav Item ──
+// ── Set Active Nav ──
 function setActiveNav() {
   const path = window.location.pathname;
   document.querySelectorAll('.nav-item').forEach(item => {
     const href = item.getAttribute('href') || '';
-    if (href && path.includes(
-      href.replace('../', '').replace('.html', '')
-    )) {
+    if (href && path.includes(href.replace('../','').replace('.html','')))
       item.classList.add('active');
-    }
   });
 }
 
-// ── Print Bill ──
+// ══════════════════════════════════════════════════════════
+// ── printBill — used by billing.html AND history.html ──
+// Shows hotel LOGO + NAME on every printed receipt
+// ══════════════════════════════════════════════════════════
 function printBill(
   bill,
   items,
@@ -136,67 +126,99 @@ function printBill(
 
   const date = bill.bill_date
     ? formatDate(bill.bill_date)
-    : formatDate(DateUtils.today());
+    : formatDate(new Date().toISOString().slice(0, 10));
   const time = bill.bill_time
     ? bill.bill_time.slice(0, 5)
     : new Date().toLocaleTimeString('en-IN', {
         hour: '2-digit', minute: '2-digit'
       });
-
-  const itemsHtml = items.map(item => `
-    <div class="receipt-item">
-      <span class="receipt-item-name">${item.item_name}</span>
-      <span class="receipt-item-qty">${item.quantity}</span>
-      <span class="receipt-item-rate">${Number(item.selling_price).toFixed(0)}</span>
-      <span class="receipt-item-amt">${Number(item.line_total).toFixed(0)}</span>
-    </div>
-  `).join('');
-
   const total = items.reduce((s, i) => s + Number(i.line_total), 0);
 
+  const itemsHtml = items.map(item => `
+    <div class="r-item">
+      <span class="r-iname">${item.item_name}</span>
+      <span class="r-iqty">${item.quantity}</span>
+      <span class="r-irate">${Number(item.selling_price).toFixed(0)}</span>
+      <span class="r-iamt">${Number(item.line_total).toFixed(0)}</span>
+    </div>`).join('');
+
   receipt.innerHTML = `
+    <style>
+      @media print {
+        body > * { display: none !important; }
+        #print-receipt { display: block !important; }
+      }
+      #print-receipt .receipt {
+        width: 80mm; margin: 0 auto;
+        font-family: 'Courier New', monospace;
+        font-size: 12px; color: #000;
+      }
+      #print-receipt .r-header { text-align: center; margin-bottom: 8px; }
+      #print-receipt .r-logo   { width: 70px; height: 70px;
+                                  object-fit: contain; margin-bottom: 4px; }
+      #print-receipt .r-name   { font-size: 20px; font-weight: bold;
+                                  letter-spacing: 1px; margin-bottom: 2px; }
+      #print-receipt .r-sub    { font-size: 11px; color: #555; margin-bottom: 4px; }
+      #print-receipt .r-div    { border-top: 1px dashed #000; margin: 6px 0; }
+      #print-receipt .r-meta   { font-size: 11px; margin: 2px 0; }
+      #print-receipt .r-ih,
+      #print-receipt .r-item   { display: flex; font-size: 12px; margin: 3px 0; }
+      #print-receipt .r-ih     { font-weight: bold; font-size: 11px; }
+      #print-receipt .r-iname  { flex: 2; }
+      #print-receipt .r-iqty,
+      #print-receipt .r-irate,
+      #print-receipt .r-iamt   { flex: 1; text-align: right; }
+      #print-receipt .r-total  { display: flex; justify-content: space-between;
+                                  font-weight: bold; font-size: 15px; margin: 6px 0; }
+      #print-receipt .r-footer { text-align: center; font-size: 11px;
+                                  margin-top: 10px; font-style: italic; }
+    </style>
+
     <div class="receipt">
-      <div class="receipt-header">
-        <div style="text-align:center;margin-bottom:6px;">
-          <img src="/images/logo.png" alt="Logo"
-               style="width:60px;height:60px;object-fit:contain;"
-               onerror="this.style.display='none'">
-        </div>
-        <div class="receipt-hotel-name">${hotelName}</div>
-        <div class="receipt-meta">
-          Bill No: <strong>${bill.bill_number}</strong>
-        </div>
-        <div class="receipt-meta">${date} &nbsp;|&nbsp; ${time}</div>
+
+      <!-- HOTEL LOGO + NAME -->
+      <div class="r-header">
+        <img src="images/logo.png"
+             alt="${hotelName}"
+             class="r-logo"
+             onerror="this.style.display='none'">
+        <div class="r-name">${hotelName}</div>
+        <div class="r-sub">Restaurant &amp; Hotel</div>
       </div>
 
-      <div class="receipt-divider"></div>
+      <div class="r-div"></div>
 
-      <div class="receipt-items-header">
-        <span>Item</span>
-        <span>Qty</span>
-        <span>Rate</span>
-        <span>Amt</span>
+      <div class="r-meta">Bill No : <strong>${bill.bill_number}</strong></div>
+      <div class="r-meta">Date    : ${date}</div>
+      <div class="r-meta">Time    : ${time}</div>
+
+      <div class="r-div"></div>
+
+      <div class="r-ih">
+        <span class="r-iname">Item</span>
+        <span class="r-iqty">Qty</span>
+        <span class="r-irate">Rate</span>
+        <span class="r-iamt">Amt</span>
       </div>
 
-      <div class="receipt-divider"></div>
+      <div class="r-div"></div>
 
       ${itemsHtml}
 
-      <div class="receipt-divider"></div>
+      <div class="r-div"></div>
 
-      <div class="receipt-total">
+      <div class="r-total">
         <span>TOTAL</span>
-        <span>${formatCurrency(total)}</span>
+        <span>₹${total.toFixed(2)}</span>
       </div>
 
-      <div class="receipt-divider"></div>
+      <div class="r-div"></div>
 
-      <div class="receipt-footer">${footer}</div>
+      <div class="r-footer">${footer}</div>
     </div>
   `;
 
-  // Trigger print after a short delay so DOM renders
-  setTimeout(() => window.print(), 300);
+  setTimeout(() => window.print(), 350);
 }
 
 // ── Load User Info in Sidebar ──
