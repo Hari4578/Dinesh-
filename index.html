@@ -14,14 +14,11 @@
   <div class="login-bg-pattern"></div>
   <div class="login-card">
     <div class="login-logo" style="text-align:center;">
-      <img src="images/logo.png" 
-     alt="Dinesh Hotel Logo" 
-     style="width:90px;
-            height:90px;
-            object-fit:contain;
-            border-radius:16px;
-            margin-bottom:12px;">
-<h1>Dinesh Hotel</h1>
+      <img src="images/logo.png"
+           alt="Dinesh Hotel Logo"
+           style="width:90px;height:90px;object-fit:contain;
+                  border-radius:16px;margin-bottom:12px;">
+      <h1>Dinesh Hotel</h1>
       <p>Billing Management System</p>
     </div>
     <div class="login-form">
@@ -30,7 +27,7 @@
         <label for="email">Email Address</label>
         <div class="input-with-icon">
           <span class="input-icon">✉️</span>
-          <input type="email" id="email" class="form-control" 
+          <input type="email" id="email" class="form-control"
                  placeholder="admin@dineshhotel.com" autocomplete="email">
         </div>
       </div>
@@ -38,16 +35,20 @@
         <label for="password">Password</label>
         <div class="input-with-icon">
           <span class="input-icon">🔒</span>
-          <input type="password" id="password" class="form-control" 
+          <input type="password" id="password" class="form-control"
                  placeholder="Enter your password" autocomplete="current-password">
         </div>
       </div>
-      <div id="error-msg" style="display:none;background:#ffebee;color:#c62828;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:12px;border-left:3px solid #c62828;"></div>
-      <button id="login-btn" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+      <div id="error-msg" style="display:none;background:#ffebee;color:#c62828;
+           padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:12px;
+           border-left:3px solid #c62828;"></div>
+      <button id="login-btn" class="btn btn-primary btn-full btn-lg"
+              style="margin-top:8px;">
         🔑 Sign In to Dashboard
       </button>
       <div style="text-align:center;margin-top:16px;">
-        <a href="#" id="forgot-link" style="font-size:.82rem;color:var(--saffron);font-weight:500;">
+        <a href="#" id="forgot-link"
+           style="font-size:.82rem;color:var(--saffron);font-weight:500;">
           Forgot password?
         </a>
       </div>
@@ -57,25 +58,23 @@
 
 <!-- Load Supabase FIRST using the UMD build -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../js/config.js"></script>
-<script src="../js/supabase.js"></script>
-<script src="../js/app.js"></script>
-<script src="../js/sidebar.js"></script
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
 <script>
-// ── Inline Supabase init (fixes loading order issue) ──
-const SUPABASE_URL = 'https://gtujlykdrfwqbdschsya.supabase.co';
+// ── Inline Supabase init ──
+const SUPABASE_URL      = 'https://gtujlykdrfwqbdschsya.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dWpseWtkcmZ3cWJkc2Noc3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTc4MjMsImV4cCI6MjA4OTg5MzgyM30.Mahmwd7TwW9A20B3ksDqCBfOS5E4lqcBiZ2wRLQRlJk';
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Toast helper ──
+// ── Error helpers ──
 function showError(msg) {
   const el = document.getElementById('error-msg');
   el.textContent = msg;
   el.style.display = 'block';
 }
-
 function hideError() {
   document.getElementById('error-msg').style.display = 'none';
 }
@@ -95,16 +94,16 @@ function hideError() {
 // ── Login handler ──
 async function doLogin() {
   hideError();
-  const email = document.getElementById('email').value.trim();
+  const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  const btn = document.getElementById('login-btn');
+  const btn      = document.getElementById('login-btn');
 
   if (!email || !password) {
     showError('Please enter your email and password.');
     return;
   }
 
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = '⏳ Signing in...';
 
   try {
@@ -112,19 +111,19 @@ async function doLogin() {
 
     if (error) {
       showError('Login failed: ' + error.message);
-      btn.disabled = false;
+      btn.disabled  = false;
       btn.innerHTML = '🔑 Sign In to Dashboard';
       return;
     }
 
     if (data.session) {
-      btn.textContent = '✅ Success! Redirecting...';
+      btn.textContent      = '✅ Success! Redirecting...';
       window.location.href = 'pages/dashboard.html';
     }
 
   } catch (err) {
     showError('Connection error. Check your internet and try again.');
-    btn.disabled = false;
+    btn.disabled  = false;
     btn.innerHTML = '🔑 Sign In to Dashboard';
   }
 }
