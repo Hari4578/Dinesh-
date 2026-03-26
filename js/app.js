@@ -24,15 +24,15 @@ const Toast = {
   },
 
   success(msg) { this.show(msg, 'success'); },
-  error(msg) { this.show(msg, 'error'); },
-  info(msg) { this.show(msg, 'info'); }
+  error(msg)   { this.show(msg, 'error');   },
+  info(msg)    { this.show(msg, 'info');    }
 };
 
 // ── Sidebar Toggle (Mobile) ──
 function initSidebar() {
   const hamburger = document.getElementById('hamburger-btn');
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
 
   if (!hamburger || !sidebar) return;
 
@@ -53,7 +53,9 @@ function initClock() {
   if (!el) return;
   const update = () => {
     const now = new Date();
-    el.textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    el.textContent = now.toLocaleTimeString('en-IN', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
   };
   update();
   setInterval(update, 1000);
@@ -68,10 +70,12 @@ function formatCurrency(amount) {
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
 }
 
-// ── Date helpers ──
+// ── Date Helpers ──
 const DateUtils = {
   today() { return new Date().toISOString().slice(0, 10); },
   yesterday() {
@@ -97,32 +101,49 @@ function confirmAction(message) {
   return confirm(message);
 }
 
-// ── Show/hide loading ──
+// ── Show Loading ──
 function showLoading(containerId, message = 'Loading...') {
   const el = document.getElementById(containerId);
-  if (el) el.innerHTML = `<div class="loading-spinner"></div><p style="text-align:center;color:var(--text-light);font-size:.85rem;margin-top:8px;">${message}</p>`;
+  if (el) el.innerHTML = `
+    <div class="loading-spinner"></div>
+    <p style="text-align:center;color:var(--text-light);
+              font-size:.85rem;margin-top:8px;">${message}</p>
+  `;
 }
 
-// ── Set active nav item ──
+// ── Set Active Nav Item ──
 function setActiveNav() {
   const path = window.location.pathname;
   document.querySelectorAll('.nav-item').forEach(item => {
     const href = item.getAttribute('href') || '';
-    if (href && path.includes(href.replace('../', '').replace('.html', ''))) {
+    if (href && path.includes(
+      href.replace('../', '').replace('.html', '')
+    )) {
       item.classList.add('active');
     }
   });
 }
 
 // ── Print Bill ──
-function printBill(bill, items, hotelName = 'Dinesh Hotel', footer = 'Thank You! Visit Again') {
+function printBill(
+  bill,
+  items,
+  hotelName = 'Dinesh Hotel',
+  footer    = 'Thank You! Visit Again'
+) {
   const receipt = document.getElementById('print-receipt');
   if (!receipt) return;
 
-  const date = bill.bill_date ? formatDate(bill.bill_date) : formatDate(DateUtils.today());
-  const time = bill.bill_time ? bill.bill_time.slice(0, 5) : new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  const date = bill.bill_date
+    ? formatDate(bill.bill_date)
+    : formatDate(DateUtils.today());
+  const time = bill.bill_time
+    ? bill.bill_time.slice(0, 5)
+    : new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit'
+      });
 
-  let itemsHtml = items.map(item => `
+  const itemsHtml = items.map(item => `
     <div class="receipt-item">
       <span class="receipt-item-name">${item.item_name}</span>
       <span class="receipt-item-qty">${item.quantity}</span>
@@ -131,21 +152,54 @@ function printBill(bill, items, hotelName = 'Dinesh Hotel', footer = 'Thank You!
     </div>
   `).join('');
 
+  const total = items.reduce((s, i) => s + Number(i.line_total), 0);
+
   receipt.innerHTML = `
     <div class="receipt">
       <div class="receipt-header">
         <div style="text-align:center;margin-bottom:6px;">
-  <img src="/images/logo.png" 
-       alt="Logo"
-       style="width:60px;height:60px;
-              object-fit:contain;"
-       onerror="this.style.display='none'">
-</div>
-<div class="receipt-hotel-name">${hotelName}</div>
+          <img src="/images/logo.png" alt="Logo"
+               style="width:60px;height:60px;object-fit:contain;"
+               onerror="this.style.display='none'">
+        </div>
+        <div class="receipt-hotel-name">${hotelName}</div>
+        <div class="receipt-meta">
+          Bill No: <strong>${bill.bill_number}</strong>
+        </div>
+        <div class="receipt-meta">${date} &nbsp;|&nbsp; ${time}</div>
+      </div>
 
+      <div class="receipt-divider"></div>
 
+      <div class="receipt-items-header">
+        <span>Item</span>
+        <span>Qty</span>
+        <span>Rate</span>
+        <span>Amt</span>
+      </div>
 
-// ── Set user info in sidebar ──
+      <div class="receipt-divider"></div>
+
+      ${itemsHtml}
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-total">
+        <span>TOTAL</span>
+        <span>${formatCurrency(total)}</span>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-footer">${footer}</div>
+    </div>
+  `;
+
+  // Trigger print after a short delay so DOM renders
+  setTimeout(() => window.print(), 300);
+}
+
+// ── Load User Info in Sidebar ──
 async function loadUserInfo() {
   try {
     const user = await Auth.getUser();
@@ -155,7 +209,7 @@ async function loadUserInfo() {
   } catch (e) {}
 }
 
-// ── Init page ──
+// ── Init Page ──
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initClock();
