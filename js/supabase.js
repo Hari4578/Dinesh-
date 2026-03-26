@@ -11,12 +11,18 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ===============================
 const Auth = {
   async requireAuth() {
-    const { data: { session } } = await db.auth.getSession();
-    if (!session) {
-      window.location.href = "../index.html";
+    try {                                                      // ✅ FIX 1: wrap in try/catch
+      const { data: { session }, error } = await db.auth.getSession();
+      if (error || !session) {
+        window.location.href = "/index.html";                 // ✅ FIX 2: absolute path
+        return null;
+      }
+      return session.user;
+    } catch (e) {
+      console.error("Auth error:", e);
+      window.location.href = "/index.html";                   // ✅ FIX 3: catch network errors
       return null;
     }
-    return session.user;
   },
 
   async getUser() {
@@ -26,7 +32,7 @@ const Auth = {
 
   async logout() {
     await db.auth.signOut();
-    window.location.href = "../index.html";
+    window.location.href = "/index.html";                     // ✅ FIX 4: absolute path
   }
 };
 
@@ -113,7 +119,6 @@ const Bills = {
   async create(billData, cartItems) {
     const subtotal = cartItems.reduce((s, i) => s + i.line_total, 0);
 
-    // Insert bill
     const { data: bill, error: billError } = await db
       .from("bills")
       .insert([{
@@ -132,7 +137,6 @@ const Bills = {
 
     if (billError) throw billError;
 
-    // Insert bill items
     const items = cartItems.map(item => ({
       bill_id:       bill.id,
       item_id:       item.item_id,
@@ -197,7 +201,6 @@ const Bills = {
   },
 
   async delete(id) {
-    // Delete bill items first
     const { error: itemsError } = await db
       .from("bill_items")
       .delete()
@@ -205,7 +208,6 @@ const Bills = {
 
     if (itemsError) throw itemsError;
 
-    // Delete bill
     const { error } = await db
       .from("bills")
       .delete()
@@ -229,15 +231,11 @@ const Reports = {
 
     if (error) throw error;
 
-    const bills      = data || [];
-    const totalSales  = bills.reduce((s, b) => s + Number(b.total  || 0), 0);
+    const bills       = data || [];
+    const totalSales  = bills.reduce((s, b) => s + Number(b.total        || 0), 0);
     const totalProfit = bills.reduce((s, b) => s + Number(b.total_profit || 0), 0);
 
-    return {
-      totalSales,
-      totalProfit,
-      billCount: bills.length
-    };
+    return { totalSales, totalProfit, billCount: bills.length };
   },
 
   async getTopItems(from, to, limit = 10) {
@@ -254,7 +252,6 @@ const Reports = {
 
     if (error) throw error;
 
-    // Aggregate by item name
     const map = {};
     (data || []).forEach(row => {
       if (!map[row.item_name]) {
@@ -301,7 +298,6 @@ const Settings = {
 
     if (error) throw error;
 
-    // Convert array to object
     const obj = {};
     (data || []).forEach(row => { obj[row.key] = row.value; });
     return obj;
