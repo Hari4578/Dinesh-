@@ -9,36 +9,30 @@
 <body>
 <div id="toast-container"></div>
 <div id="print-receipt"></div>
-
 <div class="admin-layout">
   <div id="sidebar-container"></div>
-
   <div class="main-content">
     <div class="top-bar">
       <div class="top-bar-left">
         <button class="hamburger-btn" id="hamburger-btn">☰</button>
         <div>
           <div class="page-title">Menu Management</div>
-          <div class="page-subtitle">Add, edit and manage menu items</div>
+          <div class="page-subtitle">Add, edit and manage items</div>
         </div>
       </div>
       <div class="top-bar-right">
         <span class="current-time" id="current-time"></span>
-        <button class="btn btn-primary btn-sm" onclick="openItemModal()">
-          + Add Item
-        </button>
+        <button class="btn btn-primary btn-sm" 
+          onclick="openItemModal()">+ Add Item</button>
       </div>
     </div>
-
     <div class="page-content">
-
-      <!-- Filters -->
       <div class="card mb-4">
-        <div class="card-body"
-             style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        <div class="card-body" style="display:flex;
+          flex-wrap:wrap;gap:12px;align-items:center;">
           <div style="flex:1;min-width:200px;">
-            <input type="text" id="menu-search" class="form-control"
-                   placeholder="🔍 Search items...">
+            <input type="text" id="menu-search" 
+              class="form-control" placeholder="🔍 Search items...">
           </div>
           <div class="category-tabs" id="filter-tabs" style="margin:0;">
             <button class="cat-tab active" data-cat="All">All</button>
@@ -47,14 +41,11 @@
             <button class="cat-tab" data-cat="Tiffin">Tiffin</button>
             <button class="cat-tab" data-cat="Drinks">Drinks</button>
             <button class="cat-tab" data-cat="Snacks">Snacks</button>
-            <button class="cat-tab" data-cat="Starters">Starters</button>
           </div>
         </div>
       </div>
-
-      <!-- Stats -->
-      <div class="stats-grid mb-4"
-           style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+      <div class="stats-grid mb-4" 
+        style="grid-template-columns:repeat(3,1fr);">
         <div class="stat-card orange">
           <div class="stat-icon orange">🍛</div>
           <div class="stat-value" id="stat-total">0</div>
@@ -71,12 +62,10 @@
           <div class="stat-label">Unavailable</div>
         </div>
       </div>
-
-      <!-- Menu Table -->
       <div class="card">
         <div class="card-header">
           <h3>🍛 Menu Items</h3>
-          <span class="text-sm text-muted" id="items-count">Loading...</span>
+          <span class="text-sm text-muted" id="items-count"></span>
         </div>
         <div class="table-wrapper">
           <table>
@@ -84,27 +73,24 @@
               <tr>
                 <th>Item Name</th>
                 <th>Category</th>
-                <th class="text-right">Selling Price</th>
+                <th class="text-right">Price</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="menu-table-body">
-              <tr>
-                <td colspan="5">
-                  <div class="loading-spinner"></div>
-                </td>
-              </tr>
+              <tr><td colspan="5">
+                <div class="loading-spinner"></div>
+              </td></tr>
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Item Modal -->
+<!-- Modal -->
 <div class="modal-overlay" id="item-modal" style="display:none;">
   <div class="modal">
     <div class="modal-header">
@@ -113,13 +99,11 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-id">
-
       <div class="form-group">
         <label>Item Name *</label>
-        <input type="text" id="item-name" class="form-control"
-               placeholder="e.g. Masala Dosa">
+        <input type="text" id="item-name" class="form-control" 
+          placeholder="e.g. Masala Dosa">
       </div>
-
       <div class="grid-2">
         <div class="form-group">
           <label>Category *</label>
@@ -129,7 +113,6 @@
             <option value="Tiffin">Tiffin</option>
             <option value="Drinks">Drinks</option>
             <option value="Snacks">Snacks</option>
-            <option value="Starters">Starters</option>
           </select>
         </div>
         <div class="form-group">
@@ -140,17 +123,18 @@
           </select>
         </div>
       </div>
-
       <div class="form-group">
         <label>Selling Price (₹) *</label>
-        <input type="number" id="item-selling" class="form-control"
-               placeholder="0.00" min="0" step="0.50">
+        <input type="number" id="item-selling" 
+          class="form-control" placeholder="0" min="0" step="1">
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeItemModal()">Cancel</button>
-      <button class="btn btn-primary" id="save-item-btn"
-              onclick="saveItem()">💾 Save Item</button>
+      <button class="btn btn-ghost" onclick="closeItemModal()">
+        Cancel
+      </button>
+      <button class="btn btn-primary" id="save-item-btn" 
+        onclick="saveItem()">💾 Save Item</button>
     </div>
   </div>
 </div>
@@ -160,216 +144,180 @@
 <script src="../js/app.js"></script>
 <script src="../js/sidebar.js"></script>
 <script>
-  let allItems   = [];
-  let activeFilter = 'All';
+let allItems = [];
+let activeFilter = 'All';
 
-  (async () => {
-    const user = await Auth.requireAuth();
-    if (!user) return;
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await Auth.requireAuth();
+  if (!user) return;
+  injectSidebar('menu');
+  await loadItems();
+});
 
-    injectSidebar('menu');
-    initSidebar();      // ← uses app.js helper; no need to re-add listener
-    initClock();
-
-    await loadItems();
-  })();
-
-  // ── Load items from Supabase ──────────────────────────────
-  async function loadItems() {
-    const tbody = document.getElementById('menu-table-body');
-    tbody.innerHTML = `<tr><td colspan="5">
-      <div class="loading-spinner"></div></td></tr>`;
-
-    try {
-      allItems = await Menu.getAll();
-      updateStats();
-      renderTable();
-    } catch (e) {
-      console.error('Menu load error:', e);
-      tbody.innerHTML = `<tr><td colspan="5"
-        style="text-align:center;color:var(--danger);">
-        Failed to load: ${e.message}</td></tr>`;
-      Toast.error('Failed to load menu: ' + e.message);
-    }
-  }
-
-  // ── Stats ─────────────────────────────────────────────────
-  function updateStats() {
-    document.getElementById('stat-total').textContent =
+async function loadItems() {
+  const tbody = document.getElementById('menu-table-body');
+  tbody.innerHTML = `<tr><td colspan="5">
+    <div class="loading-spinner"></div></td></tr>`;
+  try {
+    allItems = await Menu.getAll();
+    document.getElementById('stat-total').textContent = 
       allItems.length;
-    document.getElementById('stat-available').textContent =
+    document.getElementById('stat-available').textContent = 
       allItems.filter(i => i.available).length;
-    document.getElementById('stat-unavailable').textContent =
+    document.getElementById('stat-unavailable').textContent = 
       allItems.filter(i => !i.available).length;
-  }
-
-  // ── Render Table ──────────────────────────────────────────
-  function renderTable() {
-    const tbody  = document.getElementById('menu-table-body');
-    const search = document.getElementById('menu-search')
-                     .value.toLowerCase();
-
-    const items = allItems.filter(item => {
-      const matchCat    = activeFilter === 'All' ||
-                          item.category === activeFilter;
-      const matchSearch = !search ||
-                          item.name.toLowerCase().includes(search);
-      return matchCat && matchSearch;
-    });
-
-    document.getElementById('items-count').textContent =
-      `${items.length} item${items.length !== 1 ? 's' : ''}`;
-
-    if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5">
-        <div class="empty-state">
-          <div class="empty-icon">🍛</div>
-          <h3>No items found</h3>
-          <p>Add your first menu item</p>
-        </div></td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = items.map(item => `
-      <tr>
-        <td class="font-bold">${item.name}</td>
-        <td><span class="badge badge-info">${item.category}</span></td>
-        <td class="text-right mono">
-          ₹${Number(item.selling_price).toFixed(2)}
-        </td>
-        <td>
-          <span class="badge ${item.available
-            ? 'badge-success' : 'badge-danger'}">
-            ${item.available ? '✅ Available' : '🚫 Off'}
-          </span>
-        </td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn btn-sm btn-ghost"
-            onclick='editItem(${JSON.stringify(item)
-              .replace(/'/g, "&#39;")})'>✏️ Edit</button>
-          <button class="btn btn-sm"
-            style="background:${item.available
-              ? 'var(--warning-bg)' : 'var(--success-bg)'};
-              color:${item.available
-              ? 'var(--warning)' : 'var(--success)'};border:none;"
-            onclick="toggleAvail('${item.id}', ${item.available})">
-            ${item.available ? '🚫 Disable' : '✅ Enable'}
-          </button>
-          <button class="btn btn-sm btn-danger"
-            onclick="deleteItem('${item.id}',
-            '${item.name.replace(/'/g, "\\'")}')">🗑️</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // ── Category Filter ───────────────────────────────────────
-  document.getElementById('filter-tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.cat-tab');
-    if (!tab) return;
-    document.querySelectorAll('#filter-tabs .cat-tab')
-      .forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeFilter = tab.dataset.cat;
     renderTable();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" 
+      style="text-align:center;color:red;">
+      Error: ${e.message}</td></tr>`;
+  }
+}
+
+function renderTable() {
+  const tbody = document.getElementById('menu-table-body');
+  const search = document.getElementById('menu-search')
+    .value.toLowerCase();
+  let items = allItems.filter(item => {
+    const matchCat = activeFilter === 'All' || 
+      item.category === activeFilter;
+    const matchSearch = !search || 
+      item.name.toLowerCase().includes(search);
+    return matchCat && matchSearch;
   });
+  document.getElementById('items-count').textContent = 
+    `${items.length} items`;
+  if (items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5">
+      <div class="empty-state">
+        <div class="empty-icon">🍛</div>
+        <h3>No items</h3>
+      </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = items.map(item => `
+    <tr>
+      <td class="font-bold">${item.name}</td>
+      <td><span class="badge badge-info">${item.category}</span></td>
+      <td class="text-right mono">
+        ₹${Number(item.selling_price).toFixed(0)}
+      </td>
+      <td><span class="badge ${item.available ? 
+        'badge-success' : 'badge-danger'}">
+        ${item.available ? '✅ Available' : '🚫 Off'}
+      </span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-ghost" 
+          onclick='editItem(${JSON.stringify(item)
+            .replace(/'/g,"&#39;")})'>✏️</button>
+        <button class="btn btn-sm" 
+          style="background:${item.available ?
+            'var(--warning-bg)':'var(--success-bg)'};
+            color:${item.available ?
+            'var(--warning)':'var(--success)'};border:none;"
+          onclick="toggleAvail('${item.id}',${item.available})">
+          ${item.available ? '🚫' : '✅'}
+        </button>
+        <button class="btn btn-sm btn-danger" 
+          onclick="deleteItem('${item.id}',
+          '${item.name.replace(/'/g,"\\'")}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
 
-  document.getElementById('menu-search')
-    .addEventListener('input', renderTable);
+document.getElementById('filter-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab');
+  if (!tab) return;
+  document.querySelectorAll('#filter-tabs .cat-tab')
+    .forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  activeFilter = tab.dataset.cat;
+  renderTable();
+});
 
-  // ── Modal ─────────────────────────────────────────────────
-  function openItemModal(item = null) {
-    document.getElementById('edit-id').value        = item?.id || '';
-    document.getElementById('item-name').value      = item?.name || '';
-    document.getElementById('item-category').value  =
-      item?.category || 'Snacks';
-    document.getElementById('item-selling').value   =
-      item?.selling_price || '';
-    document.getElementById('item-available').value =
-      item?.available !== false ? 'true' : 'false';
-    document.getElementById('modal-title').textContent =
-      item ? 'Edit Menu Item' : 'Add Menu Item';
+document.getElementById('menu-search')
+  .addEventListener('input', renderTable);
 
-    document.getElementById('item-modal').style.display = 'flex';
-    setTimeout(() =>
-      document.getElementById('item-name').focus(), 100);
+function openItemModal(item = null) {
+  document.getElementById('edit-id').value = item?.id || '';
+  document.getElementById('item-name').value = item?.name || '';
+  document.getElementById('item-category').value = 
+    item?.category || 'Snacks';
+  document.getElementById('item-selling').value = 
+    item?.selling_price || '';
+  document.getElementById('item-available').value = 
+    item?.available !== false ? 'true' : 'false';
+  document.getElementById('modal-title').textContent = 
+    item ? 'Edit Item' : 'Add Item';
+  document.getElementById('item-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('item-name').focus(), 100);
+}
+
+function editItem(item) { openItemModal(item); }
+
+function closeItemModal() {
+  document.getElementById('item-modal').style.display = 'none';
+}
+
+async function saveItem() {
+  const name = document.getElementById('item-name').value.trim();
+  const category = document.getElementById('item-category').value;
+  const selling_price = parseFloat(
+    document.getElementById('item-selling').value);
+  const available = 
+    document.getElementById('item-available').value === 'true';
+  const editId = document.getElementById('edit-id').value;
+
+  if (!name) { Toast.error('Item name required'); return; }
+  if (isNaN(selling_price) || selling_price < 0) {
+    Toast.error('Enter valid price'); return;
   }
 
-  function editItem(item)   { openItemModal(item); }
-  function closeItemModal() {
-    document.getElementById('item-modal').style.display = 'none';
+  const btn = document.getElementById('save-item-btn');
+  btn.disabled = true; btn.textContent = '⏳ Saving...';
+
+  try {
+    if (editId) {
+      await Menu.update(editId, {
+        name, category, selling_price, cost_price: 0, available
+      });
+      Toast.success('Updated!');
+    } else {
+      await Menu.create({
+        name, category, selling_price, cost_price: 0, available
+      });
+      Toast.success('Added!');
+    }
+    closeItemModal();
+    await loadItems();
+  } catch(e) {
+    Toast.error('Failed: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 Save Item';
   }
+}
 
-  // ── Save Item ─────────────────────────────────────────────
-  async function saveItem() {
-    const name          = document.getElementById('item-name')
-                            .value.trim();
-    const category      = document.getElementById('item-category').value;
-    const selling_price = parseFloat(
-                            document.getElementById('item-selling').value);
-    const available     = document.getElementById('item-available')
-                            .value === 'true';
-    const editId        = document.getElementById('edit-id').value;
+async function toggleAvail(id, current) {
+  try {
+    await Menu.update(id, { available: !current });
+    Toast.success(`Item ${current ? 'disabled' : 'enabled'}`);
+    await loadItems();
+  } catch(e) { Toast.error('Failed: ' + e.message); }
+}
 
-    if (!name) {
-      Toast.error('Item name is required'); return;
-    }
-    if (isNaN(selling_price) || selling_price < 0) {
-      Toast.error('Enter a valid selling price'); return;
-    }
+async function deleteItem(id, name) {
+  if (!confirm(`Delete "${name}"?`)) return;
+  try {
+    await Menu.delete(id);
+    Toast.success('Deleted!');
+    await loadItems();
+  } catch(e) { Toast.error('Failed: ' + e.message); }
+}
 
-    const btn = document.getElementById('save-item-btn');
-    btn.disabled    = true;
-    btn.textContent = '⏳ Saving...';
-
-    try {
-      if (editId) {
-        await Menu.update(editId,
-          { name, category, selling_price, available });
-        Toast.success('Item updated successfully!');
-      } else {
-        await Menu.create(
-          { name, category, selling_price, available });
-        Toast.success('Item added successfully!');
-      }
-      closeItemModal();
-      await loadItems();
-    } catch (e) {
-      Toast.error('Failed to save: ' + e.message);
-    } finally {
-      btn.disabled    = false;
-      btn.textContent = '💾 Save Item';
-    }
-  }
-
-  // ── Toggle Availability ───────────────────────────────────
-  async function toggleAvail(id, current) {
-    try {
-      await Menu.update(id, { available: !current });
-      Toast.success(`Item ${current ? 'disabled' : 'enabled'}`);
-      await loadItems();
-    } catch (e) {
-      Toast.error('Failed to update: ' + e.message);
-    }
-  }
-
-  // ── Delete Item ───────────────────────────────────────────
-  async function deleteItem(id, name) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-    try {
-      await Menu.delete(id);
-      Toast.success('Item deleted');
-      await loadItems();
-    } catch (e) {
-      Toast.error('Failed to delete: ' + e.message);
-    }
-  }
-
-  // Close modal on backdrop click
-  document.getElementById('item-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('item-modal'))
-      closeItemModal();
-  });
+document.getElementById('item-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('item-modal'))
+    closeItemModal();
+});
 </script>
 </body>
 </html>
