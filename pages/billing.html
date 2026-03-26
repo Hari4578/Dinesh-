@@ -35,8 +35,8 @@
           <div class="category-tabs" id="category-tabs">
             <button class="cat-tab active" data-cat="All">All</button>
             <button class="cat-tab" data-cat="Breakfast">Breakfast</button>
-            <button class="cat-tab" data-cat="Meals">Meals</button>
-            <button class="cat-tab" data-cat="Tiffin">Tiffin</button>
+            <button class="cat-tab" data-cat="Meals">Lunch</button>
+            <button class="cat-tab" data-cat="Tiffin">startus</button>
             <button class="cat-tab" data-cat="Drinks">Drinks</button>
             <button class="cat-tab" data-cat="Snacks">Snacks</button>
           </div>
@@ -192,9 +192,8 @@ function addToCart(itemId) {
       item_name: item.name,
       quantity: 1,
       selling_price: Number(item.selling_price),
-      cost_price: 0,
       line_total: Number(item.selling_price),
-      line_profit: 0
+      
     });
   }
   renderCart();
