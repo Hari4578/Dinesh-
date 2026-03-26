@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing — Dinesh Hotel</title>
+  <title>Dashboard — Dinesh Hotel</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div id="toast-container"></div>
 <div id="print-receipt"></div>
+
 <div class="admin-layout">
   <div id="sidebar-container"></div>
   <div class="main-content">
@@ -16,71 +17,111 @@
       <div class="top-bar-left">
         <button class="hamburger-btn" id="hamburger-btn">☰</button>
         <div>
-          <div class="page-title">New Billing</div>
-          <div class="page-subtitle">Select items and generate bill</div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="today-date">
+            Today's Overview
+          </div>
         </div>
       </div>
       <div class="top-bar-right">
         <span class="current-time" id="current-time"></span>
+        <a href="/pages/billing.html" 
+           class="btn btn-primary btn-sm">+ New Bill</a>
       </div>
     </div>
+
     <div class="page-content">
-      <div class="billing-layout">
-        <div class="menu-panel">
-          <div class="menu-search-bar mb-3">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="menu-search" 
-              placeholder="Search menu items..." autocomplete="off">
+
+      <!-- Stats -->
+      <div class="stats-grid mb-4">
+        <div class="stat-card orange">
+          <div class="stat-icon orange">💰</div>
+          <div class="stat-value" id="today-sales">₹0</div>
+          <div class="stat-label">Today's Sales</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon blue">🧾</div>
+          <div class="stat-value" id="today-bills">0</div>
+          <div class="stat-label">Bills Today</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon purple">📅</div>
+          <div class="stat-value" id="month-sales">₹0</div>
+          <div class="stat-label">Month Sales</div>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h3>⚡ Quick Actions</h3>
           </div>
-          <div class="category-tabs" id="category-tabs">
-            <button class="cat-tab active" data-cat="All">All</button>
-            <button class="cat-tab" data-cat="Breakfast">Breakfast</button>
-            <button class="cat-tab" data-cat="Meals">Meals</button>
-            <button class="cat-tab" data-cat="Tiffin">Tiffin</button>
-            <button class="cat-tab" data-cat="Drinks">Drinks</button>
-            <button class="cat-tab" data-cat="Snacks">Snacks</button>
-          </div>
-          <div class="menu-grid" id="menu-grid">
-            <p style="padding:20px;color:var(--text-light);">
-              Loading menu...
-            </p>
+          <div class="card-body" 
+               style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <a href="/pages/billing.html" 
+               class="btn btn-primary">🧾 New Bill</a>
+            <a href="/pages/history.html" 
+               class="btn btn-secondary">📋 View Bills</a>
+            <a href="/pages/menu.html" 
+               class="btn btn-secondary">🍛 Menu Items</a>
+            <a href="/pages/reports.html" 
+               class="btn btn-secondary">📈 Reports</a>
           </div>
         </div>
-        <div class="bill-panel">
-          <div class="card">
-            <div class="card-header">
-              <h3>🧾 Current Bill</h3>
-              <div class="bill-no" id="current-bill-no">---</div>
+
+        <!-- Month Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📅 This Month</h3>
+          </div>
+          <div class="card-body">
+            <div class="total-row">
+              <span>Total Sales</span>
+              <span class="mono font-bold" id="m-sales">₹0.00</span>
             </div>
-            <div id="cart-container">
-              <div class="cart-empty">
-                <div class="empty-icon">🛒</div>
-                <p>Tap items to add here</p>
-              </div>
+            <div class="total-row">
+              <span>Total Bills</span>
+              <span class="mono font-bold" id="m-bills">0</span>
             </div>
-            <div class="bill-total-section" 
-                 id="bill-total" style="display:none;">
-              <div class="total-row grand">
-                <span>GRAND TOTAL</span>
-                <span class="amount" id="grand-total">₹0.00</span>
-              </div>
-            </div>
-            <div class="bill-actions">
-              <button id="save-print-btn" 
-                class="btn btn-success btn-lg" disabled>
-                💾 Save & Print Bill
-              </button>
-              <button id="save-only-btn" 
-                class="btn btn-primary" disabled>
-                ✅ Save Bill Only
-              </button>
-              <button id="clear-btn" class="btn btn-ghost">
-                🗑️ Clear Cart
-              </button>
+            <div class="total-row">
+              <span>Avg Bill Value</span>
+              <span class="mono font-bold" id="m-avg">₹0.00</span>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Recent Bills -->
+      <div class="card">
+        <div class="card-header">
+          <h3>🕐 Recent Bills</h3>
+          <a href="/pages/history.html" 
+             class="btn btn-sm btn-ghost">View All →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Bill No</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Items</th>
+                <th class="text-right">Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="recent-bills-body">
+              <tr>
+                <td colspan="6">
+                  <div class="loading-spinner"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -90,223 +131,112 @@
 <script src="../js/app.js"></script>
 <script src="../js/sidebar.js"></script>
 <script>
-let allMenuItems = [];
-let cart = [];
-let currentBillNo = '';
-let activeCategory = 'All';
-let hotelName = 'Dinesh Hotel';
-let printFooter = 'Thank You! Visit Again';
-
-document.addEventListener('DOMContentLoaded', async () => {
+(async () => {
   const user = await Auth.requireAuth();
   if (!user) return;
-  injectSidebar('billing');
-  try {
-    hotelName = await Settings.get('hotel_name') || 'Dinesh Hotel';
-    printFooter = await Settings.get('print_footer') || 
-      'Thank You! Visit Again';
-  } catch(e) {}
-  try {
-    currentBillNo = await Bills.generateBillNumber();
-    document.getElementById('current-bill-no').textContent = 
-      currentBillNo;
-  } catch(e) {
-    document.getElementById('current-bill-no').textContent = 'BILL001';
-  }
-  await loadMenu();
-});
 
-async function loadMenu() {
-  const grid = document.getElementById('menu-grid');
+  injectSidebar('dashboard');
+
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('en-IN', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+  await loadStats();
+  await loadRecentBills();
+})();
+
+async function loadStats() {
   try {
-    allMenuItems = await Menu.getAvailable();
-    if (allMenuItems.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1;
-        text-align:center;padding:40px;color:var(--text-light);">
-        No items. <a href="/pages/menu.html" 
-        style="color:var(--saffron)">Add items</a>
-      </div>`;
+    const today = new Date().toISOString().slice(0, 10);
+    const m = new Date();
+    const monthStart = `${m.getFullYear()}-${String(
+      m.getMonth()+1).padStart(2,'0')}-01`;
+
+    const todayBills = await Bills.getByDateRange(today, today);
+    const monthBills = await Bills.getByDateRange(monthStart, today);
+
+    const todaySales = todayBills.reduce(
+      (s,b) => s + Number(b.total), 0);
+    const monthSales = monthBills.reduce(
+      (s,b) => s + Number(b.total), 0);
+
+    document.getElementById('today-sales').textContent =
+      formatCurrency(todaySales);
+    document.getElementById('today-bills').textContent =
+      todayBills.length;
+    document.getElementById('month-sales').textContent =
+      formatCurrency(monthSales);
+    document.getElementById('m-sales').textContent =
+      formatCurrency(monthSales);
+    document.getElementById('m-bills').textContent =
+      monthBills.length;
+    document.getElementById('m-avg').textContent =
+      monthBills.length > 0
+        ? formatCurrency(monthSales / monthBills.length)
+        : '₹0.00';
+
+  } catch(e) {
+    console.error('Stats error:', e);
+  }
+}
+
+async function loadRecentBills() {
+  const tbody = document.getElementById('recent-bills-body');
+  try {
+    const bills = await Bills.getAll();
+    const recent = bills.slice(0, 10);
+
+    if (recent.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">
+        <div class="empty-state">
+          <div class="empty-icon">🧾</div>
+          <p>No bills yet. 
+            <a href="/pages/billing.html" 
+               style="color:var(--saffron)">
+              Create your first bill
+            </a>
+          </p>
+        </div></td></tr>`;
       return;
     }
-    renderMenu();
+
+    tbody.innerHTML = recent.map(bill => `
+      <tr>
+        <td>
+          <span class="mono font-bold" 
+                style="color:var(--saffron)">
+            ${bill.bill_number}
+          </span>
+        </td>
+        <td>${formatDate(bill.bill_date)}</td>
+        <td class="mono">
+          ${bill.bill_time ? bill.bill_time.slice(0,5) : '-'}
+        </td>
+        <td>
+          ${bill.bill_items ? bill.bill_items.length : 0} items
+        </td>
+        <td class="text-right mono font-bold">
+          ${formatCurrency(bill.total)}
+        </td>
+        <td>
+          <a href="/pages/history.html" 
+             class="btn btn-sm btn-ghost">View</a>
+        </td>
+      </tr>
+    `).join('');
+
   } catch(e) {
-    grid.innerHTML = `<div style="grid-column:1/-1;
-      padding:20px;color:red;">Error: ${e.message}</div>`;
+    console.error('Bills error:', e);
+    tbody.innerHTML = `<tr><td colspan="6" 
+      style="text-align:center;color:var(--danger);">
+      Error: ${e.message}
+    </td></tr>`;
   }
 }
-
-function renderMenu() {
-  const grid = document.getElementById('menu-grid');
-  const searchVal = document.getElementById('menu-search')
-    .value.toLowerCase();
-  let items = allMenuItems.filter(item => {
-    const matchCat = activeCategory === 'All' || 
-      item.category === activeCategory;
-    const matchSearch = !searchVal || 
-      item.name.toLowerCase().includes(searchVal);
-    return matchCat && matchSearch;
-  });
-  if (items.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1;
-      text-align:center;padding:20px;color:var(--text-light);">
-      No items found</div>`;
-    return;
-  }
-  grid.innerHTML = items.map(item => {
-    const inCart = cart.find(c => c.item_id === item.id);
-    return `<button class="menu-item-btn ${inCart ? 'in-cart' : ''}" 
-      onclick="addToCart('${item.id}')">
-      ${inCart ? `<span class="item-in-cart-badge">
-        ${inCart.quantity}</span>` : ''}
-      <div class="menu-item-name">${item.name}</div>
-      <div class="menu-item-price">
-        ₹${Number(item.selling_price).toFixed(0)}
-      </div>
-      <div class="menu-item-cat">${item.category}</div>
-    </button>`;
-  }).join('');
-}
-
-document.getElementById('category-tabs').addEventListener('click', e => {
-  const tab = e.target.closest('.cat-tab');
-  if (!tab) return;
-  document.querySelectorAll('.cat-tab')
-    .forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
-  activeCategory = tab.dataset.cat;
-  renderMenu();
-});
-
-document.getElementById('menu-search').addEventListener('input', renderMenu);
-
-function addToCart(itemId) {
-  const item = allMenuItems.find(i => i.id === itemId);
-  if (!item) return;
-  const existing = cart.find(c => c.item_id === itemId);
-  if (existing) {
-    existing.quantity++;
-    existing.line_total = existing.selling_price * existing.quantity;
-  } else {
-    cart.push({
-      item_id: item.id,
-      item_name: item.name,
-      quantity: 1,
-      selling_price: Number(item.selling_price),
-      cost_price: 0,
-      line_total: Number(item.selling_price),
-      line_profit: 0
-    });
-  }
-  renderCart();
-  renderMenu();
-}
-
-function adjustQty(itemId, delta) {
-  const idx = cart.findIndex(c => c.item_id === itemId);
-  if (idx === -1) return;
-  cart[idx].quantity += delta;
-  if (cart[idx].quantity <= 0) {
-    cart.splice(idx, 1);
-  } else {
-    cart[idx].line_total = 
-      cart[idx].selling_price * cart[idx].quantity;
-  }
-  renderCart();
-  renderMenu();
-}
-
-function removeFromCart(itemId) {
-  cart = cart.filter(c => c.item_id !== itemId);
-  renderCart();
-  renderMenu();
-}
-
-function renderCart() {
-  const container = document.getElementById('cart-container');
-  const totalSection = document.getElementById('bill-total');
-  const savePrintBtn = document.getElementById('save-print-btn');
-  const saveOnlyBtn = document.getElementById('save-only-btn');
-  if (cart.length === 0) {
-    container.innerHTML = `<div class="cart-empty">
-      <div class="empty-icon">🛒</div>
-      <p>Tap items to add here</p>
-    </div>`;
-    totalSection.style.display = 'none';
-    savePrintBtn.disabled = true;
-    saveOnlyBtn.disabled = true;
-    return;
-  }
-  const total = cart.reduce((s, i) => s + i.line_total, 0);
-  container.innerHTML = `<div class="cart-items">
-    ${cart.map(item => `
-      <div class="cart-item">
-        <div class="cart-item-name">${item.item_name}</div>
-        <div class="qty-controls">
-          <button class="qty-btn" 
-            onclick="adjustQty('${item.item_id}',-1)">−</button>
-          <span class="qty-display">${item.quantity}</span>
-          <button class="qty-btn" 
-            onclick="adjustQty('${item.item_id}',1)">+</button>
-        </div>
-        <div class="cart-item-total">
-          ₹${item.line_total.toFixed(0)}
-        </div>
-        <button class="remove-btn" 
-          onclick="removeFromCart('${item.item_id}')">✕</button>
-      </div>`).join('')}
-  </div>`;
-  document.getElementById('grand-total').textContent = 
-    formatCurrency(total);
-  totalSection.style.display = 'block';
-  savePrintBtn.disabled = false;
-  saveOnlyBtn.disabled = false;
-}
-
-document.getElementById('clear-btn').addEventListener('click', () => {
-  if (cart.length === 0) return;
-  if (!confirm('Clear all items?')) return;
-  cart = [];
-  renderCart();
-  renderMenu();
-});
-
-async function saveBill(andPrint = false) {
-  if (cart.length === 0) { Toast.error('Add items first'); return; }
-  const btn = andPrint
-    ? document.getElementById('save-print-btn')
-    : document.getElementById('save-only-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Saving...';
-  try {
-    const bill = await Bills.create(
-      { bill_number: currentBillNo }, cart
-    );
-    Toast.success(`Bill ${bill.bill_number} saved!`);
-    if (andPrint) printBill(bill, cart, hotelName, printFooter);
-    cart = [];
-    currentBillNo = await Bills.generateBillNumber();
-    document.getElementById('current-bill-no').textContent = 
-      currentBillNo;
-    renderCart();
-    renderMenu();
-  } catch(e) {
-    Toast.error('Failed: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = andPrint 
-      ? '💾 Save & Print Bill' 
-      : '✅ Save Bill Only';
-    document.getElementById('save-print-btn').disabled = 
-      cart.length === 0;
-    document.getElementById('save-only-btn').disabled = 
-      cart.length === 0;
-  }
-}
-
-document.getElementById('save-print-btn')
-  .addEventListener('click', () => saveBill(true));
-document.getElementById('save-only-btn')
-  .addEventListener('click', () => saveBill(false));
 </script>
 </body>
 </html>
