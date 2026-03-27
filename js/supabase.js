@@ -2,8 +2,8 @@
 // js/supabase.js
 // ============================================================
 
-const SUPABASE_URL      =APP_CONFIG.'https://gtujlykdrfwqbdschsya.supabase.co';
-const SUPABASE_ANON_KEY = APP_CONFIG.'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dWpseWtkcmZ3cWJkc2Noc3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTc4MjMsImV4cCI6MjA4OTg5MzgyM30.Mahmwd7TwW9A20B3ksDqCBfOS5E4lqcBiZ2wRLQRlJk';
+const SUPABASE_URL      =APP_CONFIG.supabaseUrl;
+const SUPABASE_ANON_KEY = APP_CONFIG.supabaseKey;
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
