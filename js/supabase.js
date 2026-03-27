@@ -1,6 +1,9 @@
+// ============================================================
 // js/supabase.js
-const SUPABASE_URL      = APP_CONFIG.'https://gtujlykdrfwqbdschsya.supabase.co';
-const SUPABASE_ANON_KEY = APP_CONFIG.'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dWpseWtkcmZ3cWJkc2Noc3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTc4MjMsImV4cCI6MjA4OTg5MzgyM30.Mahmwd7TwW9A20B3ksDqCBfOS5E4lqcBiZ2wRLQRlJk';
+// ============================================================
+
+const SUPABASE_URL      = 'https://gtujlykdrfwqbdschsya.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dWpseWtkcmZ3cWJkc2Noc3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTc4MjMsImV4cCI6MjA4OTg5MzgyM30.Mahmwd7TwW9A20B3ksDqCBfOS5E4lqcBiZ2wRLQRlJk';
 
 const { createClient } = window.supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -37,28 +40,40 @@ const Auth = {
 // ── MENU ──────────────────────────────────────────────────────
 const Menu = {
   async getAll() {
-    const { data, error } = await db.from('menu_items')
-      .select('*').order('category').order('name');
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .order('category')
+      .order('name');
     if (error) throw error;
     return data;
   },
   async getAvailable() {
-    const { data, error } = await db.from('menu_items')
-      .select('*').eq('available', true)
-      .order('category').order('name');
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .eq('available', true)
+      .order('category')
+      .order('name');
     if (error) throw error;
     return data;
   },
   async create(item) {
-    const { data, error } = await db.from('menu_items')
-      .insert([item]).select().single();
+    const { data, error } = await db
+      .from('menu_items')
+      .insert([item])
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
   async update(id, updates) {
-    const { data, error } = await db.from('menu_items')
+    const { data, error } = await db
+      .from('menu_items')
       .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id).select().single();
+      .eq('id', id)
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
@@ -72,10 +87,12 @@ const Menu = {
 const Bills = {
   async generateBillNumber() {
     const today = new Date();
-    const prefix = 'DH' + today.getFullYear() +
+    const prefix = 'DH' +
+      today.getFullYear() +
       String(today.getMonth() + 1).padStart(2, '0') +
       String(today.getDate()).padStart(2, '0');
-    const { data } = await db.from('bills')
+    const { data } = await db
+      .from('bills')
       .select('bill_number')
       .like('bill_number', prefix + '%')
       .order('bill_number', { ascending: false })
@@ -88,15 +105,18 @@ const Bills = {
   async create(billData, items) {
     const user = await Auth.getUser();
     const subtotal = items.reduce((s, i) => s + Number(i.line_total), 0);
-    const { data: bill, error } = await db.from('bills')
+    const { data: bill, error } = await db
+      .from('bills')
       .insert([{
         bill_number: billData.bill_number,
         bill_date:   new Date().toISOString().slice(0, 10),
         bill_time:   new Date().toTimeString().slice(0, 8),
         subtotal,
-        total: subtotal,
-        created_by: user?.id
-      }]).select().single();
+        total:       subtotal,
+        created_by:  user?.id
+      }])
+      .select()
+      .single();
     if (error) throw error;
     const billItems = items.map(item => ({
       bill_id:       bill.id,
@@ -111,14 +131,16 @@ const Bills = {
     return bill;
   },
   async getAll() {
-    const { data, error } = await db.from('bills')
+    const { data, error } = await db
+      .from('bills')
       .select('*, bill_items(*)')
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
   async getByDateRange(from, to) {
-    const { data, error } = await db.from('bills')
+    const { data, error } = await db
+      .from('bills')
       .select('*, bill_items(*)')
       .gte('bill_date', from)
       .lte('bill_date', to)
@@ -135,13 +157,17 @@ const Bills = {
 // ── SETTINGS ──────────────────────────────────────────────────
 const Settings = {
   async get(key) {
-    const { data, error } = await db.from('settings')
-      .select('value').eq('key', key).single();
+    const { data, error } = await db
+      .from('settings')
+      .select('value')
+      .eq('key', key)
+      .single();
     if (error) return null;
     return data?.value;
   },
   async set(key, value) {
-    const { error } = await db.from('settings')
+    const { error } = await db
+      .from('settings')
       .upsert({ key, value }, { onConflict: 'key' });
     if (error) throw error;
   }
