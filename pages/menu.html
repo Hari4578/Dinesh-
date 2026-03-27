@@ -308,8 +308,15 @@ async function toggleAvail(id, current) {
   } catch(e) { Toast.error('Failed: ' + e.message); }
 }
 
+  // ✅ REPLACE WITH (app modal)
 async function deleteItem(id, name) {
-  if (!confirm(`Delete "${name}"?`)) return;
+  const confirmed = await confirmAction(
+    `Delete "${name}" from menu?`,
+    'Delete Item',
+    'Yes, Delete',
+    'Cancel'
+  );
+  if (!confirmed) return;
   try {
     await Menu.delete(id);
     Toast.success('Deleted!');
