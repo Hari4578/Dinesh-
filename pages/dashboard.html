@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -25,7 +25,7 @@
       </div>
       <div class="top-bar-right">
         <span class="current-time" id="current-time"></span>
-        <a href="/pages/billing.html" 
+        <a href="/pages/billing.html"
            class="btn btn-primary btn-sm">+ New Bill</a>
       </div>
     </div>
@@ -45,7 +45,7 @@
           <div class="stat-label">Bills Today</div>
         </div>
         <div class="stat-card purple">
-          <div class="stat-icon purple"></div>
+          <div class="stat-icon purple">📅</div>
           <div class="stat-value" id="month-sales">₹0</div>
           <div class="stat-label">Month Sales</div>
         </div>
@@ -57,15 +57,15 @@
           <div class="card-header">
             <h3>⚡ Quick Actions</h3>
           </div>
-          <div class="card-body" 
+          <div class="card-body"
                style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <a href="/pages/billing.html" 
+            <a href="/pages/billing.html"
                class="btn btn-primary">🧾 New Bill</a>
-            <a href="/pages/history.html" 
+            <a href="/pages/history.html"
                class="btn btn-secondary">📋 View Bills</a>
-            <a href="/pages/menu.html" 
+            <a href="/pages/menu.html"
                class="btn btn-secondary">🍛 Menu Items</a>
-            <a href="/pages/reports.html" 
+            <a href="/pages/reports.html"
                class="btn btn-secondary">📈 Reports</a>
           </div>
         </div>
@@ -73,7 +73,7 @@
         <!-- Month Summary -->
         <div class="card">
           <div class="card-header">
-            <h3> This Month</h3>
+            <h3>📅 This Month</h3>
           </div>
           <div class="card-body">
             <div class="total-row">
@@ -96,7 +96,7 @@
       <div class="card">
         <div class="card-header">
           <h3>🕐 Recent Bills</h3>
-          <a href="/pages/history.html" 
+          <a href="/pages/history.html"
              class="btn btn-sm btn-ghost">View All →</a>
         </div>
         <div class="table-wrapper">
@@ -126,10 +126,12 @@
   </div>
 </div>
 
+<!-- ✅ FIXED: Added ../ to all script paths (file is inside pages/ folder) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase.js"></script>
-<script src="js/app.js"></script>
-<script src="js/sidebar.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
 <script>
 (async () => {
   const user = await Auth.requireAuth();
@@ -194,8 +196,8 @@ async function loadRecentBills() {
       tbody.innerHTML = `<tr><td colspan="6">
         <div class="empty-state">
           <div class="empty-icon">🧾</div>
-          <p>No bills yet. 
-            <a href="/pages/billing.html" 
+          <p>No bills yet.
+            <a href="/pages/billing.html"
                style="color:var(--saffron)">
               Create your first bill
             </a>
@@ -207,7 +209,7 @@ async function loadRecentBills() {
     tbody.innerHTML = recent.map(bill => `
       <tr>
         <td>
-          <span class="mono font-bold" 
+          <span class="mono font-bold"
                 style="color:var(--saffron)">
             ${bill.bill_number}
           </span>
@@ -223,7 +225,7 @@ async function loadRecentBills() {
           ${formatCurrency(bill.total)}
         </td>
         <td>
-          <a href="/pages/history.html" 
+          <a href="/pages/history.html"
              class="btn btn-sm btn-ghost">View</a>
         </td>
       </tr>
@@ -231,7 +233,7 @@ async function loadRecentBills() {
 
   } catch(e) {
     console.error('Bills error:', e);
-    tbody.innerHTML = `<tr><td colspan="6" 
+    tbody.innerHTML = `<tr><td colspan="6"
       style="text-align:center;color:var(--danger);">
       Error: ${e.message}
     </td></tr>`;
