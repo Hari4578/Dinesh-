@@ -56,18 +56,12 @@
   </div>
 </div>
 
-<!-- Load Supabase FIRST using the UMD build -->
+<!-- Scripts: config FIRST, then supabase, then app -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/app.js"></script>
 <script>
-// ── Inline Supabase init ──
-const SUPABASE_URL      = 'https://gtujlykdrfwqbdschsya.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dWpseWtkcmZ3cWJkc2Noc3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTc4MjMsImV4cCI6MjA4OTg5MzgyM30.Mahmwd7TwW9A20B3ksDqCBfOS5E4lqcBiZ2wRLQRlJk';
-
-const { createClient } = window.supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── Error helpers ──
 function showError(msg) {
@@ -83,9 +77,7 @@ function hideError() {
 (async () => {
   try {
     const { data: { session } } = await db.auth.getSession();
-    if (session) {
-      window.location.href = 'pages/dashboard.html';
-    }
+    if (session) window.location.href = 'pages/dashboard.html';
   } catch(e) {
     console.log('Session check failed:', e);
   }
@@ -108,19 +100,16 @@ async function doLogin() {
 
   try {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
-
     if (error) {
       showError('Login failed: ' + error.message);
       btn.disabled  = false;
       btn.innerHTML = '🔑 Sign In to Dashboard';
       return;
     }
-
     if (data.session) {
       btn.textContent      = '✅ Success! Redirecting...';
       window.location.href = 'pages/dashboard.html';
     }
-
   } catch (err) {
     showError('Connection error. Check your internet and try again.');
     btn.disabled  = false;
@@ -136,10 +125,7 @@ document.getElementById('password').addEventListener('keydown', e => {
 document.getElementById('forgot-link').addEventListener('click', async (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
-  if (!email) {
-    showError('Enter your email address above first.');
-    return;
-  }
+  if (!email) { showError('Enter your email address above first.'); return; }
   try {
     const { error } = await db.auth.resetPasswordForEmail(email);
     if (error) throw error;
@@ -148,6 +134,7 @@ document.getElementById('forgot-link').addEventListener('click', async (e) => {
     showError('Failed to send reset email: ' + err.message);
   }
 });
+
 </script>
 </body>
 </html>
